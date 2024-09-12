@@ -38,13 +38,15 @@
             android:id="@+id/button4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_margin="5sp"
             android:layout_weight="1"
+            android:padding="10sp"
             android:textAlignment="gravity"
             android:textSize="10sp"
             app:cornerRadius="10sp"
             app:icon="@drawable/call"
             app:iconGravity="textTop"
-            app:iconSize="80sp" />
+            app:iconSize="90sp" />
 
     </LinearLayout>
 
@@ -57,9 +59,15 @@
         <Button
             android:id="@+id/button5"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="5sp"
             android:layout_weight="1"
-            app:icon="@drawable/bus" />
+            android:gravity="center"
+            android:textAlignment="gravity"
+            app:cornerRadius="10sp"
+            app:icon="@drawable/bus"
+            app:iconGravity="textTop"
+            app:iconSize="150sp" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -71,22 +79,35 @@
                 android:id="@+id/button6"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_margin="5sp"
                 android:layout_weight="1"
-                app:icon="@drawable/calendar" />
+                android:textAlignment="gravity"
+                app:cornerRadius="10sp"
+                app:icon="@drawable/calendar"
+                app:iconGravity="textTop"
+                app:iconSize="80sp" />
 
             <Button
                 android:id="@+id/button8"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                app:icon="@drawable/drugs" />
+                android:layout_margin="5sp"
+                app:cornerRadius="10sp"
+                app:icon="@drawable/drugs"
+                app:iconGravity="textTop"
+                app:iconSize="90sp" />
         </LinearLayout>
 
         <Button
             android:id="@+id/button7"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_margin="5sp"
             android:layout_weight="1"
-            app:icon="@drawable/job" />
+            app:cornerRadius="10sp"
+            app:icon="@drawable/job"
+            app:iconGravity="textTop"
+            app:iconSize="150sp" />
 
     </LinearLayout>
 </LinearLayout>
