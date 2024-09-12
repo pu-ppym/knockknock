@@ -12,11 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Knockknock"
         tools:targetApi="31">
+        <meta-data
+            android:name="com.google.android.actions"
+            android:resource="@xml/button_background" />
         <!-- landscape -> 가로화면 고정 -->
         <activity
             android:name=".view.MainActivity"
-            android:screenOrientation="landscape"
-            android:exported="true">
+            android:exported="true"
+            android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
