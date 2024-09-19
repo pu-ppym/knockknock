@@ -23,12 +23,14 @@ import java.net.URL;
 import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 
 public class MainActivity extends AppCompatActivity {
     private TextView ShowDate;
     private TextView ShowTime;
     String test;
     TextView showWeater;
+    private MyGps myGps;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,18 +45,7 @@ public class MainActivity extends AppCompatActivity {
 
         ShowTimeMethod();
 
-        WeatherData wd = new WeatherData();
-        new Thread(() -> {
-            try {
-                test = wd.lookUpWeather("20240919","0500","56","126");
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
-            }
-            System.out.println("날씨 테스트: "+test);
-        }).start();
-
+        showWeatherData();
 
 
     }
@@ -90,6 +81,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    public void showWeatherData() {
+        long now = System.currentTimeMillis();
+        Date mDate = new Date(now);
+
+        // 넘겨줄 날짜 가져오기
+        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyyMMdd");
+        String getDate = simpleDateFormat1.format(mDate);
+
+        SimpleDateFormat simpleDateFormat2 = new SimpleDateFormat("HH");
+        String getTime = simpleDateFormat2.format(mDate) + "00";
+
+        WeatherData wd = new WeatherData();
+        new Thread(() -> {
+            try {
+                test = wd.lookUpWeather(getDate,getTime,"56","126");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (JSONException e) {
+                throw new RuntimeException(e);
+            }
+            System.out.println("날씨 테스트: "+test);
+        }).start();
+    }
 
     public class WeatherData {
 
@@ -183,17 +197,19 @@ public class MainActivity extends AppCompatActivity {
                 if (category.equals("TMP")) {
                     temperature = fcstValue + "℃ ";
                 }
-
+                /*
                 if(category.equals("WSD")) {
                     wind = fcstValue + "m/s ";
                 }
-
-                if(category.equals("POP")) {
+                */
+                if(category.equals("POP")) {    // 강수확률
                     rain = fcstValue + "% ";
                 }
+                /*
                 if(category.equals("SNO")) {
                     snow = fcstValue + " ";
                 }
+                */
                 if(category.equals("REH")) {
                     humidity = fcstValue + "%";
                 }
@@ -201,7 +217,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
 
-            return sky + rain + temperature + wind + snow + humidity;
+            return sky + rain + temperature + humidity;
         }
 
         public String timeChange(String time)
