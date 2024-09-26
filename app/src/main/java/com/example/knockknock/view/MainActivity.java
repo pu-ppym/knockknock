@@ -1,13 +1,22 @@
 package com.example.knockknock.view;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.location.Address;
+import android.location.Geocoder;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import com.example.knockknock.R;
 
@@ -17,6 +26,7 @@ import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -24,13 +34,26 @@ import java.net.URLEncoder;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
+import java.util.Locale;
+
+import jxl.Sheet;
+import jxl.Workbook;
+import jxl.read.biff.BiffException;
 
 public class MainActivity extends AppCompatActivity {
     private TextView ShowDate;
     private TextView ShowTime;
     String test;
     TextView showWeater;
-    private MyGps myGps;
+
+    // gps
+    LocationManager locationManager;
+    LocationListener locationListener;
+    double lat; // 위도
+    double lng; // 경도
+    String x,y;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
         showWeatherData();
 
-
+        getGpsData();
     }
 
     public void ShowTimeMethod(){
@@ -269,6 +292,126 @@ public class MainActivity extends AppCompatActivity {
         }
 
     }
+
+    public void getGpsData(){
+        locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
+        locationListener = new LocationListener() {
+            // GPS의 정보를 얻어 올 수 있는 메소드
+            @Override
+            public void onLocationChanged(@NonNull Location location) {
+                lat = location.getLatitude();
+                lng = location.getLongitude();
+
+                Log.i("MyLocation", "위도 : " + lat);
+                Log.i("MyLocation", "경도 : " + lng);
+
+
+                String address = getCurrentAddress(lat, lng);
+                Log.i("MyAddress","주소: " + address);
+
+                //readExcel(String.valueOf((int) lat),  String.valueOf((int) lng));
+
+            }
+        };
+
+        // requestLocationUpdates(String provider, long minTimeMs, float minDistanceM, LocationListener listener, Looper looper)
+        // 3초마다 위치 정보 업데이트
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+            //return;
+        } else{
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                    3000, -1, locationListener);
+        }
+    }
+
+    // gps - 앱 권한 요청 설정 메소드
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == 100) {
+            // 권한 요청
+            if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(MainActivity.this,
+                        new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
+            }
+        }
+    }
+
+// gps로 주소 가져오기
+    public String getCurrentAddress( double latitude, double longitude) {
+
+        //지오코더-> GPS를 주소로 변환
+        Geocoder geocoder = new Geocoder(this, Locale.getDefault());
+
+        List<Address> addresses;
+
+        try {
+
+            addresses = geocoder.getFromLocation(
+                    latitude,
+                    longitude,
+                    7);
+        } catch (IOException ioException) {
+            //네트워크 문제
+            Toast.makeText(this, "지오코더 서비스 사용불가", Toast.LENGTH_LONG).show();
+            return "지오코더 서비스 사용불가";
+        } catch (IllegalArgumentException illegalArgumentException) {
+            Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
+            return "잘못된 GPS 좌표";
+
+        }
+
+
+
+        if (addresses == null || addresses.size() == 0) {
+            Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
+            return "주소 미발견";
+
+        }
+
+        Address address = addresses.get(0);
+        return address.getAddressLine(0).toString()+"\n";
+
+    }
+
+
+    public void readExcel(String lat, String lng) {
+        try {
+            InputStream is = getBaseContext().getResources().getAssets().open("xy_data.xlsx");
+            Workbook wb = Workbook.getWorkbook(is);
+
+            if (wb != null) {
+                Sheet sheet = wb.getSheet(0);   // 시트 불러오기
+                if (sheet != null) {
+                    int colTotal = sheet.getColumns();    // 전체 컬럼
+                    int rowIndexStart = 1;                  // row 인덱스 시작
+                    int rowTotal = sheet.getColumn(colTotal - 1).length;
+
+                    for (int row = rowIndexStart; row < rowTotal; row++) {
+                        String contents = sheet.getCell(0, row).getContents();
+                        if (contents.contains(lat) && contents.contains(lng)) {
+                            x = sheet.getCell(2, row).getContents();  // 엑셀 2열
+                            y = sheet.getCell(3, row).getContents();
+                            row = rowTotal;
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            Log.i("READ_EXCEL1", e.getMessage());
+            e.printStackTrace();
+        } catch (BiffException e) {
+            Log.i("READ_EXCEL1", e.getMessage());
+            e.printStackTrace();
+        }
+        Log.i("격자값", "x = " + x + "  y = " + y);
+    }
+
+
 
 }
 
