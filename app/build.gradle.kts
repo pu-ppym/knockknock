@@ -33,6 +33,7 @@ android {
 
 dependencies {
 
+    implementation ("com.github.razaghimahdi:Android-Loading-Dots:1.3.2")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)

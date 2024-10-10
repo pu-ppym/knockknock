@@ -14,7 +14,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 public class WeatherData {
-    private String sky, temperature, wind, rain, snow, humidity;
+    private String sky, temperature, rain, snow, humidity;
 
     public String lookUpWeather(String date, String time, String nx, String ny) throws IOException, JSONException {
         String baseDate = date; // 2022xxxx 형식을 사용해야 함
@@ -104,19 +104,26 @@ public class WeatherData {
             if (category.equals("TMP")) {
                 temperature = fcstValue + "℃ ";
             }
-                /*
-                if(category.equals("WSD")) {
-                    wind = fcstValue + "m/s ";
-                }
-                */
+
+
             if(category.equals("POP")) {    // 강수확률
                 rain = fcstValue + "% ";
             }
-                /*
-                if(category.equals("SNO")) {
-                    snow = fcstValue + " ";
+
+            if(category.equals("PTY")) {
+                if (fcstValue.equals("1")) {
+                    snow = "비 ";
+                } else if (fcstValue.equals("2")) {
+                    snow = "비/눈 ";
+                } else if (fcstValue.equals("3")) {
+                    snow = "눈 ";
+                } else if (fcstValue.equals("4")) {
+                    snow = "소나기 ";
+                } else {
+                    snow = "없음 ";
                 }
-                */
+            }
+
             if(category.equals("REH")) {
                 humidity = fcstValue + "%";
             }
@@ -124,7 +131,7 @@ public class WeatherData {
         }
 
 
-        return sky + temperature + rain  + humidity;
+        return sky + temperature + rain + snow + humidity;
     }
 
     public String timeChange(String time)

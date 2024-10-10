@@ -2,6 +2,7 @@ package com.example.knockknock.view;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -12,6 +13,8 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,12 +23,15 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 
 import com.example.knockknock.R;
+import com.razzaghimahdi78.dotsloading.circle.LoadingCircleFady;
+import com.razzaghimahdi78.dotsloading.linear.LoadingWavy;
 
 import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -39,7 +45,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView ShowDate;
     private TextView ShowTime;
     String weatherInfo;
-    TextView showWeater;
+    TextView showWeather;
+    ImageView showWeatherImg;
+    LoadingCircleFady loadingImg;
+
+    String[] weatherInfoArray;  // 임시
 
     // gps
     LocationManager locationManager;
@@ -58,7 +68,12 @@ public class MainActivity extends AppCompatActivity {
 
         ShowDate = (TextView) findViewById(R.id.textView4);
         ShowTime = (TextView) findViewById(R.id.textView5);
-        showWeater = findViewById(R.id.textViewWd);
+        showWeather = findViewById(R.id.textViewWd);
+        showWeatherImg = findViewById(R.id.imgWeather);
+
+        loadingImg = findViewById(R.id.loadingImg);
+        loadingImg.setSize(30);
+        loadingImg.setDuration(400);
 
 
         ShowTimeMethod();
@@ -122,15 +137,38 @@ public class MainActivity extends AppCompatActivity {
             } catch (JSONException e) {
                 throw new RuntimeException(e);
             }
-            System.out.println("날씨 테스트: "+ weatherInfo);
+            System.out.println("날씨 테스트: "+ weatherInfo);   // 하늘, 기온, 강수 확률, 눈 or 비, 습도
 
             Runnable updateUiRunnable = () -> {
+                loadingImg.setVisibility(View.GONE);
                 if (weatherInfo != null) {
-                    String[] weatherInfoArray = weatherInfo.split(" ");
-                    showWeater.setText(weatherInfoArray[1]);
+                    weatherInfoArray = weatherInfo.split(" ");   // 0하늘, 1기온, 2강수 확률, 3눈 or 비, 4습도
+                    showWeather.setText(weatherInfoArray[1]);
+
+                    // 날씨 이미지 세팅
+                    int hour = Integer.parseInt(simpleDateFormat2.format(new Date())); // 낮 밤 구분
+                    if (weatherInfoArray[0].equals("맑음")) {
+                        if(hour >= 6 && hour < 18) {   // 낮
+                            showWeatherImg.setImageResource(R.drawable.sun);
+                        } else {
+                            showWeatherImg.setImageResource(R.drawable.moon);
+                        }
+
+                    } else if (weatherInfoArray[0].equals("비")) {
+                        showWeatherImg.setImageResource(R.drawable.rainy_day);
+                    } else if (weatherInfoArray[0].equals("구름많음")) {
+                        showWeatherImg.setImageResource(R.drawable.sun_cloud);
+                    } else if (weatherInfoArray[0].equals("흐림")) {
+                        showWeatherImg.setImageResource(R.drawable.cloud);
+                    }
+
                 } else {
-                    showWeater.setText("날씨 정보를 가져오지 못했습니다.");
+                    showWeather.setText("날씨 정보를 가져오지 못했습니다.");
                 }
+                showWeather.setVisibility(View.VISIBLE);
+                showWeatherImg.setVisibility(View.VISIBLE);
+
+
             };
 
             // 백그라운드 작업 후 UI 스레드로 전환하여 업데이트
@@ -140,6 +178,9 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    public void setWeatherImg() {
+
+    }
 
 
     public void getGpsData(){
