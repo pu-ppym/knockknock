@@ -13,7 +13,7 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.core.content.ContextCompat;
-
+/*
 // 현재 위치 가져와서 주소로 변환
 public class GpsTracker extends Service implements LocationListener {
 
@@ -159,3 +159,4 @@ public class GpsTracker extends Service implements LocationListener {
 
 
 }
+ */

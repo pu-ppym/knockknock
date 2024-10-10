@@ -108,17 +108,18 @@
         <ImageButton
             android:id="@+id/imageButton"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_margin="5dp"
             android:layout_weight="1"
             android:background="@drawable/button"
             android:padding="30dp"
-            android:scaleType="fitCenter"
+            android:scaleType="centerInside"
             app:srcCompat="@drawable/bus" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
+            android:layout_margin="5dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -126,7 +127,7 @@
                 android:id="@+id/imageButton2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_marginBottom="5dp"
                 android:layout_weight="1"
                 android:background="@drawable/button"
                 android:padding="20dp"
@@ -137,7 +138,7 @@
                 android:id="@+id/imageButton3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_margin="5dp"
+                android:layout_marginTop="5dp"
                 android:layout_weight="1"
                 android:background="@drawable/button"
                 android:padding="20dp"
@@ -149,12 +150,12 @@
         <ImageButton
             android:id="@+id/imageButton4"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_margin="5dp"
             android:layout_weight="1"
             android:background="@drawable/button"
-            android:padding="30dp"
-            android:scaleType="fitCenter"
+            android:padding="90dp"
+            android:scaleType="centerInside"
             app:srcCompat="@drawable/job" />
 
     </LinearLayout>
