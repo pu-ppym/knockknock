@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
@@ -141,33 +142,18 @@ public class MainActivity extends AppCompatActivity {
 
             Runnable updateUiRunnable = () -> {
                 loadingImg.setVisibility(View.GONE);
+                int hour = Integer.parseInt(simpleDateFormat2.format(new Date())); // 낮 밤 구분
+
                 if (weatherInfo != null) {
                     weatherInfoArray = weatherInfo.split(" ");   // 0하늘, 1기온, 2강수 확률, 3눈 or 비, 4습도
                     showWeather.setText(weatherInfoArray[1]);
-
-                    // 날씨 이미지 세팅
-                    int hour = Integer.parseInt(simpleDateFormat2.format(new Date())); // 낮 밤 구분
-                    if (weatherInfoArray[0].equals("맑음")) {
-                        if(hour >= 6 && hour < 18) {   // 낮
-                            showWeatherImg.setImageResource(R.drawable.sun);
-                        } else {
-                            showWeatherImg.setImageResource(R.drawable.moon);
-                        }
-
-                    } else if (weatherInfoArray[0].equals("비")) {
-                        showWeatherImg.setImageResource(R.drawable.rainy_day);
-                    } else if (weatherInfoArray[0].equals("구름많음")) {
-                        showWeatherImg.setImageResource(R.drawable.sun_cloud);
-                    } else if (weatherInfoArray[0].equals("흐림")) {
-                        showWeatherImg.setImageResource(R.drawable.cloud);
-                    }
-
+                    // 날씨 이미지 세팅 함수
+                    setWeatherImg(weatherInfoArray, hour);
                 } else {
                     showWeather.setText("날씨 정보를 가져오지 못했습니다.");
                 }
                 showWeather.setVisibility(View.VISIBLE);
                 showWeatherImg.setVisibility(View.VISIBLE);
-
 
             };
 
@@ -178,8 +164,24 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public void setWeatherImg() {
-
+    public void setWeatherImg(String[] array, int hour) {
+        // 날씨 이미지 세팅
+        System.out.println("매개변수 테스트: "+ Arrays.toString(array));
+        if (array[0].equals("맑음")) {
+            if(hour >= 6 && hour < 18) {   // 낮
+                showWeatherImg.setImageResource(R.drawable.sun);
+            } else {
+                showWeatherImg.setImageResource(R.drawable.moon);
+            }
+        } else if (array[0].equals("비")) {
+            showWeatherImg.setImageResource(R.drawable.rainy_day);
+        } else if (array[0].equals("구름많음")) {
+            showWeatherImg.setImageResource(R.drawable.sun_cloud);
+        } else if (array[0].equals("흐림")) {
+            showWeatherImg.setImageResource(R.drawable.cloud);
+        } else if (array[3].equals("눈")) {
+            showWeatherImg.setImageResource(R.drawable.snowfall);
+        }
     }
 
 
