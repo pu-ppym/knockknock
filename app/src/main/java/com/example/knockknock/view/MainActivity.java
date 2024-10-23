@@ -1,6 +1,9 @@
 package com.example.knockknock.view;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothSocket;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -37,6 +40,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.UUID;
 
 import jxl.Sheet;
 import jxl.Workbook;
@@ -60,6 +65,14 @@ public class MainActivity extends AppCompatActivity {
     String x = "";
     String y = "";
 
+    // bluetooth
+    private InputStream inputStream;
+    private BluetoothSocket bluetoothSocket;
+    private TextView btTest;
+    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+
+    private boolean gpsLocationReceived = false;  //getGpsData()
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
         ShowTime = (TextView) findViewById(R.id.textView5);
         showWeather = findViewById(R.id.textViewWd);
         showWeatherImg = findViewById(R.id.imgWeather);
+        btTest = findViewById(R.id.btTest);
 
         loadingImg = findViewById(R.id.loadingImg);
         loadingImg.setSize(30);
@@ -80,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         ShowTimeMethod();
         getGpsData();
 
+        initializeBluetooth();
 
     }
 
@@ -188,9 +203,13 @@ public class MainActivity extends AppCompatActivity {
     public void getGpsData(){
         locationManager = (LocationManager) this.getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
+
+
             // GPS의 정보를 얻어 올 수 있는 메소드
             @Override
             public void onLocationChanged(@NonNull Location location) {
+                Log.i("LocationChanged", "New location: " + location.toString());
+                gpsLocationReceived = true; // GPS 위치 수신됨
                 lat = location.getLatitude();
                 lng = location.getLongitude();
 
@@ -204,7 +223,10 @@ public class MainActivity extends AppCompatActivity {
                 // 엑셀파일에서 기상청만의 특별한^^ x,y 좌표(격자 XY) 가져옴
                 readExcel(String.valueOf((int) lat),  String.valueOf((int) lng));
 
+                showWeatherData();
+
             }
+
         };
 
         // requestLocationUpdates(String provider, long minTimeMs, float minDistanceM, LocationListener listener, Looper looper)
@@ -216,7 +238,12 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    0, 10, locationListener);
+
+
         }
+
     }
 
     // gps - 앱 권한 요청 설정 메소드
@@ -224,14 +251,20 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
+
         if (requestCode == 100) {
             // 권한 요청
             if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-                    && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    || ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                 ActivityCompat.requestPermissions(MainActivity.this,
                         new String[] {Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 100);
             }
         }
+
+
+
+
+
     }
 
 // gps로 주소 가져오기
@@ -305,7 +338,93 @@ public class MainActivity extends AppCompatActivity {
         }
         Log.i("격자값", "x = " + x + "  y = " + y);
 
-        showWeatherData();
+        //showWeatherData();
+    }
+
+
+    // 블루투스
+
+    private void initializeBluetooth() {
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                    100); // 100은 요청 코드입니다.
+        }
+        Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();  // 페어링된 장치 목록
+        for (BluetoothDevice device : pairedDevices) {
+            Log.d("bluetooth", device.getName().toString());
+            Log.d("bluetooth", "MAC ADDRESS : " + device.getAddress().toString());
+        }
+
+        BluetoothDevice d = BluetoothAdapter.getDefaultAdapter().getRemoteDevice("C8:F0:9E:B1:AA:5A");
+        connectToDevice(d);
+    }
+
+    private void connectToDevice(BluetoothDevice device) {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                // 권한 요청 로직 추가
+                return;
+            }
+
+            bluetoothSocket = device.createRfcommSocketToServiceRecord(MY_UUID);
+            bluetoothSocket.connect();  // 소켓연결
+            inputStream = bluetoothSocket.getInputStream(); // 입력 스트림 초기화
+
+            // 연결 성공 후 데이터 읽기 등의 작업 수행
+            Log.d("Bluetooth", "연결 성공: " + device.getName());
+
+            readData(); // 데이터 수신 시작
+
+        } catch (IOException e) {
+            Log.e("Bluetooth", "Error connecting to device", e);
+            closeSocket(); // 소켓 닫기 처리
+        }
+    }
+
+    private void readData() {
+        byte[] buffer = new byte[1024];
+
+        new Thread(() -> {
+            while (true) {
+                try {
+                    // 입력 스트림에서 데이터 읽기
+                    int bytes = inputStream.read(buffer); // 데이터 읽기
+
+                    if (bytes > 0) {
+                        String receivedData = new String(buffer, 0, bytes).trim();
+                        Log.d("Bluetooth", "Received Data: " + receivedData); // 수신 데이터 로그 출력
+                        // 수신한 데이터 처리
+                        handleReceivedData(receivedData);
+                    }
+                } catch (IOException e) {
+                    Log.e("Bluetooth", "Error reading data", e);
+                    break; // 오류 발생 시 루프 종료
+                }
+            }
+        }).start();
+    }
+
+    private void handleReceivedData(String data) {
+        // 수신한 데이터에 따라 처리
+        runOnUiThread(() -> {
+            if (data.equals("1")) {
+                btTest.setText("신호: ON");
+            } else if (data.equals("0")) {
+                btTest.setText("신호: OFF");
+            }
+        });
+    }
+
+    private void closeSocket() {
+        try {
+            if (bluetoothSocket != null) {
+                bluetoothSocket.close(); // 소켓 닫기
+            }
+        } catch (IOException e) {
+            Log.e("Bluetooth", "Error closing socket", e);
+        }
     }
 
 
