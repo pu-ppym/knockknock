@@ -1,3 +1,15 @@
 <resources>
     <string name="app_name">knockknock</string>
+    <string-array name="checklist">
+        <item>우산</item>
+        <item>양산</item>
+        <item>휴대전화</item>
+        <item>손수건</item>
+        <item>약</item>
+        <item>물티슈</item>
+        <item>열쇠</item>
+        <item>차키</item>
+        <item>립밤</item>
+        <item>지갑</item>
+    </string-array>
 </resources>
