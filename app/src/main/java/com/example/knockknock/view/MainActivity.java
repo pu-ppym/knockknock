@@ -1,9 +1,11 @@
 package com.example.knockknock.view;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Address;
@@ -17,6 +19,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
 import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -35,6 +38,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
@@ -71,6 +75,11 @@ public class MainActivity extends AppCompatActivity {
     private TextView btTest;
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 
+    // 준비물 등록
+    ImageButton ckListBtn;
+    private List<String> checkedItems = new ArrayList<>();  // 체크할거 저장할 리스트
+    private StringBuilder finalSelection = new StringBuilder(); // 결과를 저장할 StringBuilder
+
     private boolean gpsLocationReceived = false;  //getGpsData()
 
 
@@ -85,6 +94,7 @@ public class MainActivity extends AppCompatActivity {
         showWeather = findViewById(R.id.textViewWd);
         showWeatherImg = findViewById(R.id.imgWeather);
         btTest = findViewById(R.id.btTest);
+        ckListBtn = findViewById(R.id.imageButton4);
 
         loadingImg = findViewById(R.id.loadingImg);
         loadingImg.setSize(30);
@@ -93,8 +103,16 @@ public class MainActivity extends AppCompatActivity {
 
         ShowTimeMethod();
         getGpsData();
-
         initializeBluetooth();
+
+        ckListBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showChecklistDialog();
+            }
+        });
+
+
 
     }
 
@@ -406,16 +424,41 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
+    private boolean canReceiveData = true; // 데이터 수신 여부를 관리하는 변수
+
     private void handleReceivedData(String data) {
         // 수신한 데이터에 따라 처리
         runOnUiThread(() -> {
-            if (data.equals("1")) {
+            if (data.equals("1") && canReceiveData) {
                 btTest.setText("신호: ON");
+                showAlert("이것 챙기셨나요?");
+                canReceiveData = false;
+                disableDataReceiving(5000); // 5초 후 데이터 수신 재개
             } else if (data.equals("0")) {
                 btTest.setText("신호: OFF");
             }
         });
     }
+
+    private void showAlert(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(message)
+                .setMessage(finalSelection.toString())
+                .setPositiveButton("확인", (dialog, which) -> dialog.dismiss())
+                .setCancelable(true);
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    // 데이터 수신을 재개
+    private void disableDataReceiving(int milliseconds) {
+        new Handler().postDelayed(() -> {
+            canReceiveData = true; // 데이터 수신을 재개
+        }, milliseconds);
+    }
+
+
 
     private void closeSocket() {
         try {
@@ -428,6 +471,44 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // 준비물 등록
+    private void showChecklistDialog() {
+        // 목록 배열
+        String[] listItems = getResources().getStringArray(R.array.checklist);
+        boolean[] checkedStatus = new boolean[listItems.length];
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+        builder.setTitle("무엇을 가지고 나가야 할까요?");
+        builder.setMultiChoiceItems(listItems, checkedStatus, new DialogInterface.OnMultiChoiceClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
+                if (isChecked) {
+                    checkedItems.add(listItems[which]);
+                } else {
+                    checkedItems.remove(listItems[which]);
+                }
+            }
+        });
+        builder.setPositiveButton("저장", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i) {
+                finalSelection.setLength(0); // StringBuilder 초기화
+                for (String item : checkedItems) {
+                    finalSelection.append("\n").append(item);
+                }
+                Toast.makeText(getApplicationContext(), "저장되었습니다", Toast.LENGTH_SHORT).show();
+                Log.d("DEBUG", "finalSelection: " + finalSelection);
+            }
+        });
+        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss(); // 취소 버튼 클릭 시 다이얼로그를 닫음
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
 
 }
 
