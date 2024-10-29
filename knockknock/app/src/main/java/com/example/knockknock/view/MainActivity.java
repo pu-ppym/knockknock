@@ -134,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
 
         ShowTimeMethod();
         getGpsData();
-        //initializeBluetooth();
+        initializeBluetooth();
         fetchTasks(pkid);
 
 
@@ -309,8 +309,8 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
-            //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-            //        0, 10, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    0, 10, locationListener);
 
 
         }
@@ -342,6 +342,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // 블루투스
+        /*
         if (requestCode == 200) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // 권한이 허용된 경우 Bluetooth 기능 실행
@@ -355,6 +356,9 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("Error", "Bluetooth 권한이 거부되었습니다.");
             }
         }
+
+         */
+
 
 
 
@@ -441,13 +445,24 @@ public class MainActivity extends AppCompatActivity {
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
         // 권한 체크
+        /*
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED ||
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                    new String[]{Manifest.permission.BLUETOOTH_CONNECT, Manifest.permission.BLUETOOTH_SCAN},
                     200);
             return;
         }
+
+         */
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.BLUETOOTH_CONNECT},
+                    100); // 100은 요청 코드입니다.
+        }
+
+
+
 
         if (mBluetoothAdapter == null) {
             Log.d("Bluetooth", "Bluetooth를 지원하지 않는 기기입니다.");
@@ -526,8 +541,9 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             if (data.equals("1") && canReceiveData) {
                 btTest.setText("신호: ON");
-                showAlert("이것 챙기셨나요?", finalSelection.toString());
+
                 showAlert("오늘의 할일", stringBuilderTasks.toString());
+                showAlert("이것 챙기셨나요?", finalSelection.toString());
 
                 canReceiveData = false;
                 disableDataReceiving(5000); // 5초 후 데이터 수신 재개
