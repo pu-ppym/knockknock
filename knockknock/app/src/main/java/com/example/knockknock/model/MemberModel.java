@@ -2,7 +2,7 @@ package com.example.knockknock.model;
 
 public class MemberModel {
     private int pkid;
-    private String user_id;
+    private String user_id;   // mysql에서 스네이크 표기법으로 만들어서 변수명을 이렇게하는게 편함;
     private String user_pw;
     private String name;
     private String emergency_contact;
@@ -18,6 +18,12 @@ public class MemberModel {
     public MemberModel(String user_id, String user_pw) {
         this.user_id = user_id;
         this.user_pw = user_pw;
+    }
+
+    public MemberModel(int pkid, String name, String emergency_contact) {
+        this.pkid = pkid;
+        this.name = name;
+        this.emergency_contact = emergency_contact;
     }
 
     public int getPkid() {

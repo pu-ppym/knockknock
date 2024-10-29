@@ -11,19 +11,18 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.knockknock.R;
-import com.example.knockknock.model.ApiService;
+import com.example.knockknock.controller.ApiService;
 import com.example.knockknock.model.MemberModel;
-import com.example.knockknock.model.RetrofitClient;
+import com.example.knockknock.controller.RetrofitClient;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class RegisterActivity extends AppCompatActivity {
     private EditText editTextName, editTextId, editTextPw, editTextCall;
-    private Button buttonRegister;
+    private Button buttonRegister, buttonCancel;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +35,7 @@ public class RegisterActivity extends AppCompatActivity {
         editTextCall = findViewById(R.id.editRegisterCall);
 
         buttonRegister = findViewById(R.id.buttonRegister);
+        buttonCancel = findViewById(R.id.buttonCancel);
         buttonRegister.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -46,6 +46,13 @@ public class RegisterActivity extends AppCompatActivity {
 
                 MemberModel member = new MemberModel(id, password, name, eCall);
                 registerMember(member);
+            }
+        });
+
+        buttonCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                finish();
             }
         });
     }

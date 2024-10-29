@@ -2,6 +2,7 @@ package com.example.knockknock.view;
 
 import android.Manifest;
 import android.app.AlertDialog;
+import android.app.DatePickerDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -9,7 +10,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -21,7 +21,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,18 +35,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.knockknock.R;
-import com.example.knockknock.model.ApiService;
+import com.example.knockknock.controller.ApiService;
 import com.example.knockknock.model.EmergencyContactResponse;
-import com.example.knockknock.model.RetrofitClient;
+import com.example.knockknock.controller.RetrofitClient;
+import com.example.knockknock.model.ScheduleModel;
 import com.razzaghimahdi78.dotsloading.circle.LoadingCircleFady;
-import com.razzaghimahdi78.dotsloading.linear.LoadingWavy;
-
-import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -69,8 +68,8 @@ public class MainActivity extends AppCompatActivity {
     TextView showWeather;
     ImageView showWeatherImg;
     LoadingCircleFady loadingImg;
+    String[] weatherInfoArray;
 
-    String[] weatherInfoArray;  // 임시
 
     // gps
     LocationManager locationManager;
@@ -97,7 +96,16 @@ public class MainActivity extends AppCompatActivity {
     Retrofit retrofit = RetrofitClient.getClient();
     private String emergencyContact;
 
+    // 할일
+    ImageButton schedulesBtn;
+    private List<ScheduleModel> tasks;
+    StringBuilder stringBuilderTasks;
+
+    // 설정
+    ImageButton settingsBtn;
+
     private boolean gpsLocationReceived = false;  //getGpsData()
+    //int pkid;
 
 
     @Override
@@ -113,16 +121,21 @@ public class MainActivity extends AppCompatActivity {
         btTest = findViewById(R.id.btTest);
         ckListBtn = findViewById(R.id.imageButton4);
         callBtn = findViewById(R.id.imageButtonCall);
+        schedulesBtn = findViewById(R.id.imageButtonScheds);
+        settingsBtn = findViewById(R.id.imageButtonSettings);
 
         loadingImg = findViewById(R.id.loadingImg);
         loadingImg.setSize(30);
         loadingImg.setDuration(400);
 
+        // 파일에 저장된 유저정보 불러오기
+        SharedPreferences sharedPreferences = getSharedPreferences("userInfo", MODE_PRIVATE);
+        int pkid = sharedPreferences.getInt("userPkid", -1); // -1은 기본값
 
         ShowTimeMethod();
         getGpsData();
-
-        initializeBluetooth();
+        //initializeBluetooth();
+        fetchTasks(pkid);
 
 
         ckListBtn.setOnClickListener(new View.OnClickListener() {
@@ -135,11 +148,26 @@ public class MainActivity extends AppCompatActivity {
         callBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                SharedPreferences sharedPreferences = getSharedPreferences("userInfo", MODE_PRIVATE);
-                int pkid = sharedPreferences.getInt("userPkid", -1); // -1은 기본값
                 fetchEmergencyContact(pkid);
             }
         });
+
+        schedulesBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showAddScheduleDialog(pkid);
+
+            }
+        });
+
+        settingsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
+
 
 
 
@@ -191,37 +219,33 @@ public class MainActivity extends AppCompatActivity {
 
         WeatherData wd = new WeatherData();
 
-        new Thread(() -> {
-            try {
-                weatherInfo = wd.lookUpWeather(getDate,getTime,x,y);
+        wd.lookUpWeatherAsync(getDate, getTime, x, y, new WeatherData.WeatherCallback() {
+            @Override
+            public void onSuccess(String weatherInfo) {
+                // 이 부분은 메인 스레드에서 UI 작업을 수행해야 함
+                handler.post(() -> {
+                    loadingImg.setVisibility(View.GONE);
+                    int hour = Integer.parseInt(simpleDateFormat2.format(new Date())); // 낮 밤 구분
 
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            } catch (JSONException e) {
-                throw new RuntimeException(e);
+                    if (weatherInfo != null) {
+                        weatherInfoArray = weatherInfo.split(" ");   // 0하늘, 1기온, 2강수 확률, 3눈 or 비, 4습도
+                        showWeather.setText(weatherInfoArray[1]);
+                        // 날씨 이미지 세팅 함수
+                        setWeatherImg(weatherInfoArray, hour);
+                    } else {
+                        showWeather.setText("날씨 정보를 가져오지 못했습니다.");
+                    }
+                    showWeather.setVisibility(View.VISIBLE);
+                    showWeatherImg.setVisibility(View.VISIBLE);
+                });
             }
-            System.out.println("날씨 테스트: "+ weatherInfo);   // 하늘, 기온, 강수 확률, 눈 or 비, 습도
 
-            Runnable updateUiRunnable = () -> {
-                loadingImg.setVisibility(View.GONE);
-                int hour = Integer.parseInt(simpleDateFormat2.format(new Date())); // 낮 밤 구분
-
-                if (weatherInfo != null) {
-                    weatherInfoArray = weatherInfo.split(" ");   // 0하늘, 1기온, 2강수 확률, 3눈 or 비, 4습도
-                    showWeather.setText(weatherInfoArray[1]);
-                    // 날씨 이미지 세팅 함수
-                    setWeatherImg(weatherInfoArray, hour);
-                } else {
-                    showWeather.setText("날씨 정보를 가져오지 못했습니다.");
-                }
-                showWeather.setVisibility(View.VISIBLE);
-                showWeatherImg.setVisibility(View.VISIBLE);
-
-            };
-
-            // 백그라운드 작업 후 UI 스레드로 전환하여 업데이트
-            handler.post(updateUiRunnable);
-        }).start();
+            @Override
+            public void onError(Exception e) {
+                // 오류 처리
+                e.printStackTrace();
+            }
+        });
 
 
     }
@@ -285,8 +309,8 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    0, 10, locationListener);
+            //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+            //        0, 10, locationListener);
 
 
         }
@@ -502,7 +526,9 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             if (data.equals("1") && canReceiveData) {
                 btTest.setText("신호: ON");
-                showAlert("이것 챙기셨나요?");
+                showAlert("이것 챙기셨나요?", finalSelection.toString());
+                showAlert("오늘의 할일", stringBuilderTasks.toString());
+
                 canReceiveData = false;
                 disableDataReceiving(5000); // 5초 후 데이터 수신 재개
             } else if (data.equals("0")) {
@@ -511,12 +537,16 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    private void showAlert(String message) {
+    private void showAlert(String titleMessage, String message) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle(message)
-                .setMessage(finalSelection.toString())
+        builder.setTitle(titleMessage)
                 .setPositiveButton("확인", (dialog, which) -> dialog.dismiss())
                 .setCancelable(true);
+
+        if (message != null) {
+            builder.setMessage(message);   // final 이거가 준비물 목록 스트링 담긴거
+
+        }
 
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
@@ -619,6 +649,138 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+
+    // 할일 추가
+    private void showAddScheduleDialog(int pkid) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this); // 다이얼로그 설정이 다르면 걍 새로 만드는게 나음
+        builder.setTitle("Add Schedule");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_add_schedule, null);
+        builder.setView(dialogView);
+
+        EditText editTextTask = dialogView.findViewById(R.id.editTextTask);
+        EditText editTextDate = dialogView.findViewById(R.id.editTextDate);
+
+
+        editTextDate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // 현재 날짜를 가져옴.
+                final Calendar calendar = Calendar.getInstance();
+                int year = calendar.get(Calendar.YEAR);
+                int month = calendar.get(Calendar.MONTH);
+                int day = calendar.get(Calendar.DAY_OF_MONTH);
+
+                DatePickerDialog datePickerDialog = new DatePickerDialog(
+                        MainActivity.this,
+                        (datePickerView, selectedYear, selectedMonth, selectedDay) -> {
+                            // 선택된 날짜를 EditText에 설정
+                            //editTextDate.setText(selectedDay + "/" + (selectedMonth + 1) + "/" + selectedYear);
+                            editTextDate.setText(selectedYear + "-" + (selectedMonth + 1) + "-" + selectedDay);
+                        },
+                        year, month, day);
+
+                // 다이얼로그 표시
+                datePickerDialog.show();
+            }
+        });
+
+        builder.setPositiveButton("Add", (dialog, which) -> {
+            String task = editTextTask.getText().toString();
+            String date = editTextDate.getText().toString();
+
+            Log.d("텍스트박스에 입력한 일정: ", task);
+            Log.d("텍스트박스에 입력한 날짜: ", date);
+
+            // 서버로 전송
+            sendScheduleToServer(pkid, task, date);
+
+        });
+
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+
+    }
+
+
+    private void sendScheduleToServer(int fkmember, String tasks, String scheduleDate) {
+        ScheduleModel schedule = new ScheduleModel(fkmember, tasks, scheduleDate);
+
+        // Retrofit 으로 서버에 데이터 전송
+        ApiService apiService = retrofit.create(ApiService.class);
+        Call<Void> call = apiService.addSchedule(schedule);
+
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Toast.makeText(getApplicationContext(), "일정이 등록 되었습니다.", Toast.LENGTH_SHORT).show();
+                    fetchTasks(fkmember); // 일정 등록 성공 시 일정을 다시 가져옴
+                } else {
+                    Toast.makeText(getApplicationContext(), "일정 등록 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Toast.makeText(getApplicationContext(), "Error: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    // 할일 가져옴
+    private void fetchTasks(int pkid) {
+        // 회원 ID와 날짜로 데이터 요청
+        String fkmember = String.valueOf(pkid);
+        Calendar calendar = Calendar.getInstance();
+        Date tdayDate = calendar.getTime(); // 현재 날짜로
+        SimpleDateFormat simpleDateFormat1 = new SimpleDateFormat("yyyy-MM-dd");
+        String scheduleDate = simpleDateFormat1.format(tdayDate);
+
+
+        ApiService apiService = retrofit.create(ApiService.class);
+        apiService.getTasks(fkmember, scheduleDate).enqueue(new Callback<List<ScheduleModel>>() {
+            @Override
+            public void onResponse(Call<List<ScheduleModel>> call, Response<List<ScheduleModel>> response) {
+                if (response.isSuccessful()) {
+                    tasks = response.body();
+                    displayTasks();
+                } else {
+                    Toast.makeText(MainActivity.this, "데이터 가져오기 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<ScheduleModel>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "서버 연결 실패", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+    }
+
+
+    private void displayTasks() {
+        if (tasks == null || tasks.isEmpty()) {
+            Toast.makeText(this, "오늘의 할일이 없습니다.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // 여기서 tasks를 표시하는 로직 구현
+        List<String> taskStrings = new ArrayList<>();
+        for (ScheduleModel task : tasks) {
+            taskStrings.add(task.getTasks());
+            //Log.d("MainActivity", "할일: " + task.getTasks());
+        }
+        stringBuilderTasks = new StringBuilder();
+        for (String task : taskStrings) {
+            stringBuilderTasks.append(task).append("\n"); // 각 작업을 새로운 줄로 추가
+        }
+
+        Log.d("MainActivity", "할일 잘 저장됏나: " + stringBuilderTasks.toString());
+    }
 
 }
 

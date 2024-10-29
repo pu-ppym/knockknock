@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyTextAppearance" parent="TextAppearance.AppCompat">
+        <item name="android:textSize">20sp</item>
+    </style>
+    <style name="MyTextAppearance.Active" parent="@style/TextAppearance.AppCompat.Caption">
+        <item name="android:textSize">30sp</item>
+    </style>
+</resources>
+<!-- 바텀 네비 메뉴 글자 속성 -->

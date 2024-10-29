@@ -1,6 +1,5 @@
 package com.example.knockknock.view;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,15 +12,14 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.knockknock.R;
-import com.example.knockknock.model.ApiService;
+import com.example.knockknock.controller.ApiService;
 import com.example.knockknock.model.MemberModel;
-import com.example.knockknock.model.RetrofitClient;
+import com.example.knockknock.controller.RetrofitClient;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 
 public class LoginActivity extends AppCompatActivity {
     private EditText editTextLoginId, editTextLoginPw;
@@ -98,6 +96,7 @@ public class LoginActivity extends AppCompatActivity {
         editor.putInt("userPkid", member.getPkid());
         editor.putString("userId", member.getUser_id());
         editor.putString("userName", member.getName());
+        editor.putString("userCall", member.getEmergency_contact());
         editor.apply();
 
     }

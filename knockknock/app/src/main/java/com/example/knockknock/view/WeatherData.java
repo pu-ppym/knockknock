@@ -16,6 +16,18 @@ import java.net.URLEncoder;
 public class WeatherData {
     private String sky, temperature, rain, snow, humidity;
 
+    public void lookUpWeatherAsync(String date, String time, String nx, String ny, WeatherCallback callback) {
+        new Thread(() -> {
+            try {
+                String weatherData = lookUpWeather(date, time, nx, ny);
+                // 메인 스레드에서 콜백 호출
+                callback.onSuccess(weatherData);
+            } catch (IOException | JSONException e) {
+                callback.onError(e);
+            }
+        }).start();
+    }
+
     public String lookUpWeather(String date, String time, String nx, String ny) throws IOException, JSONException {
         String baseDate = date; // 2022xxxx 형식을 사용해야 함
         String baseTime = timeChange(time); // 0500 형식을 사용해야 함
@@ -216,5 +228,11 @@ public class WeatherData {
 
         }
         return time;
+    }
+
+    // WeatherCallback 인터페이스
+    public interface WeatherCallback {
+        void onSuccess(String weatherData);
+        void onError(Exception e);
     }
 }
