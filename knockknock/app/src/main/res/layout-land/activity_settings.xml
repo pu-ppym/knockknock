@@ -11,21 +11,22 @@
         android:id="@+id/btmNavigation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:itemTextAppearanceActive="@style/MyTextAppearance.Active"
-        app:itemTextAppearanceInactive="@style/MyTextAppearance"
-        app:menu="@menu/btn_navi_settings_menu" />
+    app:layout_constraintStart_toStartOf="parent"
+    app:itemTextAppearanceActive="@style/MyTextAppearance.Active"
+    app:itemTextAppearanceInactive="@style/MyTextAppearance"
+    app:menu="@menu/btn_navi_settings_menu" />
 
     <FrameLayout
         android:id="@+id/frmMain"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/btmNavigation"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toBottomOf="@+id/btmNavigation"
+    app:layout_constraintBottom_toBottomOf="parent"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent">
 
-    </FrameLayout>
-</androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>

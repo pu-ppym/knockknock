@@ -6,6 +6,7 @@ import android.app.DatePickerDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,6 +21,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -558,9 +560,10 @@ public class MainActivity extends AppCompatActivity {
             if (data.equals("1") && canReceiveData) {
                 btTest.setText("신호: ON");
 
-                showAlert("오늘의 할일", stringBuilderTasks.toString());
-                showAlert("이것 챙기셨나요?", finalSelection.toString());
-                showAlert(medicines, time_of_day);
+                //showAlert("오늘의 할일", stringBuilderTasks.toString());
+                //showAlert("이것 챙기셨나요?", finalSelection.toString());
+                //showAlert(medicines, time_of_day);
+                showNotifications(getApplicationContext());
 
                 canReceiveData = false;
                 disableDataReceiving(5000); // 5초 후 데이터 수신 재개
@@ -568,6 +571,22 @@ public class MainActivity extends AppCompatActivity {
                 btTest.setText("신호: OFF");
             }
         });
+    }
+
+    public void showNotifications(Context context) {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        if (preferences.getBoolean("today_task_enabled", true)) {
+            showAlert("오늘의 할일", stringBuilderTasks.toString());
+        }
+
+        if (preferences.getBoolean("reminder_enabled", true)) {
+            showAlert("이것 챙기셨나요?", finalSelection.toString());
+        }
+
+        if (preferences.getBoolean("medicine_enabled", true)) {
+            showAlert(medicines, time_of_day);
+        }
     }
 
     private void showAlert(String titleMessage, String message) {
@@ -897,8 +916,9 @@ public class MainActivity extends AppCompatActivity {
             public void onResponse(Call<List<MedicineModel>> call, Response<List<MedicineModel>> response) {
                 if (response.isSuccessful()) {
                     medicines = response.body();  // showalert 테스트로 냅두고 나중엔 전역변수로 수정
-                    //showAlert(medicines, time_of_day);
-                    
+                    //showAlert(medicines, time_of_day);  // test
+                    //showNotifications(getApplicationContext());  // test
+
                 } else {
                     Toast.makeText(MainActivity.this, "데이터 가져오기 실패", Toast.LENGTH_SHORT).show();
                 }

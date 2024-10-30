@@ -1,12 +1,15 @@
 package com.example.knockknock.view;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.fragment.app.Fragment;
 
+import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Switch;
 
 import com.example.knockknock.R;
 
@@ -57,10 +60,41 @@ public class AlertSettingsFragment extends Fragment {
         }
     }
 
+    private Switch switchTodayTask, switchReminder, switchMedicine;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_alert_settings, container, false);
+        View view = inflater.inflate(R.layout.fragment_alert_settings, container, false);
+
+        switchTodayTask = view.findViewById(R.id.switch_today_task);
+        switchReminder = view.findViewById(R.id.switch_reminder);
+        switchMedicine = view.findViewById(R.id.switch_medicine);
+
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+        switchTodayTask.setChecked(preferences.getBoolean("today_task_enabled", true));
+        switchReminder.setChecked(preferences.getBoolean("reminder_enabled", true));
+        switchMedicine.setChecked(preferences.getBoolean("medicine_enabled", true));
+
+        switchTodayTask.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("today_task_enabled", isChecked);
+            editor.apply();
+        });
+
+        switchReminder.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("reminder_enabled", isChecked);
+            editor.apply();
+        });
+
+        switchMedicine.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("medicine_enabled", isChecked);
+            editor.apply();
+        });
+
+        return view;
     }
 }
