@@ -5,7 +5,7 @@ const app = express();
 
 // MySQL 연결 설정
 const db = mysql.createConnection({
-  host: '192.168.200.104',  // 서버 호스트 이름
+  host: '192.168.200.101',  // 서버 호스트 이름
   user: 'jio',       // MySQL 사용자 이름
   password: '6207', // MySQL 비밀번호
   database: 'knockdb'  // 사용할 데이터베이스 이름
@@ -131,6 +131,38 @@ app.post('/update', (req, res) => {
   });
 });
 
+// 약 정보 저장
+app.post('/medications', (req, res) => {
+  const { fkmember, med_name, time_of_day } = req.body;
+
+  if (!fkmember || !med_name || !time_of_day) {
+      return res.status(400).send('All fields are required');
+  }
+
+  const sql = 'INSERT INTO medications (fkmember, med_name, time_of_day) VALUES (?, ?, ?)';
+  db.query(sql, [fkmember, med_name, time_of_day], (err, result) => {
+      if (err) {
+          return res.status(500).send('Database error');
+      }
+      res.status(201).send('Medications saved');
+  });
+});
+
+
+// 약 정보 가져오기
+app.get('/medications/:fkmember/:time_of_day', (req, res) => {
+  const { fkmember, time_of_day } = req.params;
+  const sql = 'select med_name from medications where (fkmember = ?) and (time_of_day = ?)';
+
+  db.query(sql, [fkmember, time_of_day], (error, results) => {
+      if (error) {
+          console.error('데이터 가져오기 오류:', error);
+          return res.status(500).send('서버 오류');
+      }
+      
+      res.json(results);
+  });
+});
 
 
 /*

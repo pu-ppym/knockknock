@@ -1,6 +1,7 @@
 package com.example.knockknock.controller;
 
 import com.example.knockknock.model.EmergencyContactResponse;
+import com.example.knockknock.model.MedicineModel;
 import com.example.knockknock.model.MemberModel;
 import com.example.knockknock.model.ScheduleModel;
 
@@ -33,4 +34,13 @@ public interface ApiService {
 
     @POST("/update")
     Call<Void> updateMember(@Body MemberModel member);
+
+    @POST("/medications")
+    Call<Void> saveMedication(@Body MedicineModel medicineModel);
+
+    @GET("medications/{fkmember}/{time_of_day}")
+    Call<List<MedicineModel>> getMedicines(
+            @Path("fkmember") int fkmember,
+            @Path("time_of_day") String time_of_day
+    );
 }

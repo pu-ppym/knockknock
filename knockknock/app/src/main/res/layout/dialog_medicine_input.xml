@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="약 정보를 입력하세요"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:layout_gravity="center_horizontal"
+        android:paddingBottom="8dp"/>
+
+    <!-- 아침 약 입력 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="아침 약"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etMorningMedi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="아침 약 이름을 입력하세요"/>
+
+    <!-- 점심 약 입력 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="점심 약"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etLunchMedi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="점심 약 이름을 입력하세요"/>
+
+    <!-- 저녁 약 입력 -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="저녁 약"
+        android:textStyle="bold" />
+
+    <EditText
+        android:id="@+id/etEveningMedi"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="저녁 약 이름을 입력하세요"/>
+
+
+</LinearLayout>

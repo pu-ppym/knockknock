@@ -33,11 +33,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.knockknock.R;
 import com.example.knockknock.controller.ApiService;
 import com.example.knockknock.model.EmergencyContactResponse;
 import com.example.knockknock.controller.RetrofitClient;
+import com.example.knockknock.model.MedicineModel;
 import com.example.knockknock.model.ScheduleModel;
 import com.razzaghimahdi78.dotsloading.circle.LoadingCircleFady;
 
@@ -104,6 +107,12 @@ public class MainActivity extends AppCompatActivity {
     // 설정
     ImageButton settingsBtn;
 
+    // 약
+    ImageButton medicationBtn;
+    String time_of_day = "";
+    List<MedicineModel> medicines;
+
+
     private boolean gpsLocationReceived = false;  //getGpsData()
     //int pkid;
 
@@ -123,6 +132,7 @@ public class MainActivity extends AppCompatActivity {
         callBtn = findViewById(R.id.imageButtonCall);
         schedulesBtn = findViewById(R.id.imageButtonScheds);
         settingsBtn = findViewById(R.id.imageButtonSettings);
+        medicationBtn = findViewById(R.id.imageButtonMedi);
 
         loadingImg = findViewById(R.id.loadingImg);
         loadingImg.setSize(30);
@@ -134,8 +144,9 @@ public class MainActivity extends AppCompatActivity {
 
         ShowTimeMethod();
         getGpsData();
-        initializeBluetooth();
+        //initializeBluetooth();
         fetchTasks(pkid);
+        fetchMedicine(pkid);
 
 
         ckListBtn.setOnClickListener(new View.OnClickListener() {
@@ -168,7 +179,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        medicationBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showMediInputDialog(pkid);
+            }
+        });
 
 
     }
@@ -309,8 +325,8 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    0, 10, locationListener);
+            //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+            //        0, 10, locationListener);
 
 
         }
@@ -544,6 +560,7 @@ public class MainActivity extends AppCompatActivity {
 
                 showAlert("오늘의 할일", stringBuilderTasks.toString());
                 showAlert("이것 챙기셨나요?", finalSelection.toString());
+                showAlert(medicines, time_of_day);
 
                 canReceiveData = false;
                 disableDataReceiving(5000); // 5초 후 데이터 수신 재개
@@ -777,7 +794,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-
     private void displayTasks() {
         if (tasks == null || tasks.isEmpty()) {
             Toast.makeText(this, "오늘의 할일이 없습니다.", Toast.LENGTH_SHORT).show();
@@ -797,6 +813,121 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("MainActivity", "할일 잘 저장됏나: " + stringBuilderTasks.toString());
     }
+
+
+    // 약
+    private void showMediInputDialog(int fkmember) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        //builder.setTitle("약 복용 입력");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_medicine_input, null);
+        builder.setView(dialogView);
+
+        EditText morningMedicine = dialogView.findViewById(R.id.etMorningMedi);
+        EditText lunchMedicine = dialogView.findViewById(R.id.etLunchMedi);
+        EditText dinnerMedicine = dialogView.findViewById(R.id.etEveningMedi);
+
+        builder.setPositiveButton("저장", (dialog, which) -> {
+            String morningMedi = morningMedicine.getText().toString();
+            String lunchMedi = lunchMedicine.getText().toString();
+            String dinnerMedi = dinnerMedicine.getText().toString();
+
+
+            // 아침, 점심, 저녁 데이터 전송
+            if (!morningMedi.isEmpty()) {
+                saveMedicineDataToServer(fkmember, morningMedi, "아침");
+            }
+            if (!lunchMedi.isEmpty()) {
+                saveMedicineDataToServer(fkmember, lunchMedi, "점심");
+            }
+            if (!dinnerMedi.isEmpty()) {
+                saveMedicineDataToServer(fkmember, dinnerMedi, "저녁");
+            }
+        });
+
+        builder.setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
+
+        builder.create().show();
+    }
+
+    public void saveMedicineDataToServer(int fkmember, String med_name, String timeOfDay) {
+        ApiService apiService = retrofit.create(ApiService.class);
+
+        MedicineModel medicineData = new MedicineModel(fkmember, med_name, timeOfDay);
+        Call<Void> call = apiService.saveMedication(medicineData);
+        call.enqueue(new Callback<Void>() {
+            @Override
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Retrofit", "Data saved successfully");
+                    Toast.makeText(getApplicationContext(), "약 정보가 등록 되었습니다.", Toast.LENGTH_SHORT).show();
+                    fetchMedicine(fkmember);
+                } else {
+                    Log.d("Retrofit", "Failed to save data");
+                    Toast.makeText(getApplicationContext(), "약 정보 등록 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("Retrofit", "Error: " + t.getMessage());
+            }
+        });
+    }
+
+
+    // 약 정보 가져옴
+    private void fetchMedicine(int fkmember) {
+        Calendar calendar = Calendar.getInstance();
+        int hour = calendar.get(Calendar.HOUR_OF_DAY);
+        //String time_of_day = "";
+
+        if (hour >= 6 && hour < 12) {
+            time_of_day =  "아침";
+        } else if (hour >= 12 && hour < 18) {
+            time_of_day =  "점심";
+        } else {
+            time_of_day =  "저녁";
+        }
+
+        ApiService apiService = retrofit.create(ApiService.class);
+        apiService.getMedicines(fkmember, time_of_day).enqueue(new Callback<List<MedicineModel>>() {
+            @Override
+            public void onResponse(Call<List<MedicineModel>> call, Response<List<MedicineModel>> response) {
+                if (response.isSuccessful()) {
+                    medicines = response.body();  // showalert 테스트로 냅두고 나중엔 전역변수로 수정
+                    //showAlert(medicines, time_of_day);
+                    
+                } else {
+                    Toast.makeText(MainActivity.this, "데이터 가져오기 실패", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<MedicineModel>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "서버 연결 실패", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void showAlert(List<MedicineModel> medicines, String time) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_medicine_list, null);
+        builder.setView(dialogView);
+
+        RecyclerView recyclerView = dialogView.findViewById(R.id.recyclerViewMedi);
+        MedicineAdapter adapter = new MedicineAdapter(medicines);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
+
+        builder.setTitle(time + "약 드셨나요?");
+        builder.setNegativeButton("닫기", null); // 닫기 버튼
+
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
 
 }
 

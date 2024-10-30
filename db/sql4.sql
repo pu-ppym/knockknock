@@ -38,6 +38,7 @@ create table schedules(
     constraint fkmember_task foreign key(fkmember) references members(pkid)
 ) ENGINE=InnoDB;
 
+-- xxxxxxx
 drop table if exists medication;
 create table medication(
 	pkid int primary key auto_increment,
@@ -47,9 +48,21 @@ create table medication(
     constraint fkmember_medication foreign key(fkmember) references members(pkid)
 ) ENGINE=InnoDB;
 
+drop table if exists medications;
+create table medications(
+	pkid int primary key auto_increment,
+    fkmember int not null,
+    med_name varchar(50),
+    time_of_day varchar(20) not null,
+    constraint fkmember_medications foreign key(fkmember) references members(pkid)
+) ENGINE=InnoDB;
+
+
+
 
 select * from members;
 select * from schedules;
+select * from medication;
 select * from door_access;
 
 INSERT INTO schedules (fkmember, tasks, schedule_date) 
