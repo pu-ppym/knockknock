@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/22821793-d918-4d91-86b1-6e34dc8e656b)# 똑똑
+# 똑똑
 스마트 외출 도우미 똑똑
 
 
