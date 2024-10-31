@@ -37,7 +37,8 @@ public class SplashActivity extends AppCompatActivity {
 
         int userPkid = sharedPref.getInt("userPkid", -1);
         String userName = sharedPref.getString("userName", "N/A");
-        Toast.makeText(this, "User Info: " + userPkid + ", " + userId + ", " + userName, Toast.LENGTH_LONG).show();
+        //Toast.makeText(this, "로그인 되었습니다: " + userPkid + ", " + userId + ", " + userName, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "로그인 되었습니다: " +  userName, Toast.LENGTH_LONG).show();
 
 
         return userId != null;

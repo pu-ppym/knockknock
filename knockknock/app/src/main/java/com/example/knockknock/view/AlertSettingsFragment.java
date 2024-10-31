@@ -98,7 +98,7 @@ public class AlertSettingsFragment extends Fragment {
             editor.apply();
         });
 
-        switchMedicine.setOnCheckedChangeListener((buttonView, isChecked) -> {
+        switchRecomm.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences.Editor editor = preferences.edit();
             editor.putBoolean("recommended_enabled", isChecked);
             editor.apply();

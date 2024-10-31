@@ -592,7 +592,7 @@ public class MainActivity extends AppCompatActivity {
     public void showNotifications(Context context) {
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
 
-        if (preferences.getBoolean("today_task_enabled", true)) {
+        if (preferences.getBoolean("today_task_enabled", true) && stringBuilderTasks != null) {
             showAlert("오늘의 할일", stringBuilderTasks.toString());
         }
 
@@ -601,7 +601,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        if(preferences.getBoolean("reminder_enabled", true)) {
+        if(preferences.getBoolean("recommended_enabled", true)) {
             showWeatherAlert(showCoatIcon, showUmbrellaIcon);
         }
 
@@ -1037,7 +1037,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("출입 감지된 시간", String.valueOf(hour));
                 // 새벽 시간(00:00 ~ 06:00) 체크
                 if (hour >= 0 && hour < 6) {
-                    makePhoneCall(emergencyContact);
+                    //makePhoneCall(emergencyContact);
                 }
             }
         } catch (ParseException e) {
@@ -1048,8 +1048,23 @@ public class MainActivity extends AppCompatActivity {
     // 날씨에 따른 추천 아이템
     private void checkWeatherConditions(String[] weatherInfoArray) {
         // 기온과 강수확률 파싱
-        int temperature = Integer.parseInt(weatherInfoArray[1].replace("℃", "").trim());
-        int precipitationProbability = Integer.parseInt(weatherInfoArray[2].replace("%", "").trim());
+        //int temperature = Integer.parseInt(weatherInfoArray[1].replace("℃", "").trim());
+        //int precipitationProbability = Integer.parseInt(weatherInfoArray[2].replace("%", "").trim());
+
+        int temperature = 0;
+        int precipitationProbability = 0;
+        if (weatherInfoArray[1].matches("-?\\d+℃")) {
+            temperature = Integer.parseInt(weatherInfoArray[1].replace("℃", "").trim());
+        } else {
+            System.out.println("온도 정보가 유효하지 않습니다."); // 로그 출력 (디버깅 용도)
+            return;
+        }
+        if (weatherInfoArray[2].matches("\\d+%")) {
+            precipitationProbability = Integer.parseInt(weatherInfoArray[2].replace("%", "").trim());
+        } else {
+            System.out.println("강수 확률 정보가 유효하지 않습니다.");
+            return;
+        }
 
         StringBuilder alertMessage = new StringBuilder();
         //showCoatIcon = false;

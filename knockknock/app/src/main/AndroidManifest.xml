@@ -33,6 +33,7 @@
         <activity
             android:name=".view.SplashActivity"
             android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -48,6 +49,7 @@
         <activity
             android:name=".view.LoginActivity"
             android:exported="true"
+            android:theme="@style/AppTheme.NoActionBar"
             android:screenOrientation="landscape">
 
         </activity>

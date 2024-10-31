@@ -21,7 +21,7 @@ create table door_access(
 ) ENGINE=InnoDB;
 select * from door_access;
 SELECT access_timestamp FROM door_access WHERE fkmember = 5;
-SELECT access_timestamp FROM door_access WHERE fkmember = 5;
+SELECT * FROM door_access WHERE fkmember = 5;
 SELECT @@global.time_zone, @@session.time_zone;
 
 -- 테스트
@@ -64,8 +64,11 @@ create table medications(
 
 select med_name from medications where (fkmember = 5) and (time_of_day = "아침");
 select pkid, fkmember, tasks, schedule_date from schedules where (fkmember = 7) ;
+INSERT INTO members (user_id, user_pw, name, emergency_contact) VALUES ("test1111", "1111", "jio", "010");
 
 select * from medications where (fkmember = 7);
+INSERT INTO medications (fkmember, med_name, time_of_day) VALUES (8, "영양제", "저녁");
+INSERT INTO medications (fkmember, med_name, time_of_day) VALUES (8, "관절약", "저녁");
 
 select * from members;
 select * from schedules;
