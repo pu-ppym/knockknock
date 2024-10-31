@@ -5,42 +5,43 @@
     android:layout_height="match_parent">
 
     <LinearLayout
-        android:layout_width="match_parent"
+        android:layout_width="400sp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
+        android:layout_centerInParent="true"
         android:gravity="center"
-        android:layout_centerInParent="true"> <!-- 중앙 정렬 -->
+        android:orientation="vertical"> <!-- 중앙 정렬 -->
 
         <Switch
             android:id="@+id/switch_today_task"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="70dp"
             android:text="오늘의 할일 알림"
-            android:textSize="32sp" />
+            android:textSize="28sp" />
 
         <Switch
             android:id="@+id/switch_reminder"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="70dp"
             android:text="준비물 알림"
-            android:textSize="32sp" />
+            android:textSize="28sp" />
 
         <Switch
             android:id="@+id/switch_medicine"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="70dp"
             android:text="약 복용 알림"
-            android:textSize="32sp" />
+            android:textSize="28sp" />
     </LinearLayout>
 
     <Button
         android:id="@+id/btn_close"
-        android:layout_width="wrap_content"
+        android:layout_width="200dp"
         android:layout_height="wrap_content"
         android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
         android:layout_margin="16dp"
+        android:layout_marginEnd="1064dp"
         android:text="닫기"
-        android:textSize="32sp" /> <!-- 오른쪽 아래에 배치 -->
+        android:textSize="24sp" /> <!-- 오른쪽 아래에 배치 -->
 
 </RelativeLayout>

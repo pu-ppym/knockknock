@@ -5,9 +5,9 @@ const app = express();
 
 // MySQL 연결 설정
 const db = mysql.createConnection({
-  host: '192.168.200.101',  // 서버 호스트 이름
-  user: 'jio',       // MySQL 사용자 이름
-  password: '6207', // MySQL 비밀번호
+  host: '192.168.5.115',  // 서버 호스트 이름
+  user: 'kiwu',       // MySQL 사용자 이름
+  password: 'kiwu!@', // MySQL 비밀번호
   database: 'knockdb'  // 사용할 데이터베이스 이름
 });
 
