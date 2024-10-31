@@ -2,78 +2,80 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginBottom="60dp"
+    android:gravity="center"
     android:orientation="vertical"
     android:padding="16dp">
 
     <TextView
         android:id="@+id/textViewTitle"
         android:layout_width="wrap_content"
-        android:layout_height="0dp"
+        android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginBottom="24dp"
-        android:layout_weight="1"
+        android:layout_marginBottom="60dp"
         android:text="회원가입"
-        android:textSize="24sp"
+        android:textSize="34sp"
         android:textStyle="bold" />
 
     <EditText
         android:id="@+id/editRegisterId"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
-        android:layout_weight="1"
+        android:layout_width="400dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
         android:hint="아이디"
-        android:inputType="text" />
+        android:inputType="text"
+        android:textSize="24sp" />
 
     <EditText
         android:id="@+id/editRegisterPw"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
-        android:layout_weight="1"
+        android:layout_width="400dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
         android:hint="비밀번호"
-        android:inputType="textPassword" />
+        android:inputType="textPassword"
+        android:textSize="24sp" />
 
     <EditText
         android:id="@+id/editRegisterName"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginBottom="16dp"
-        android:layout_weight="1"
+        android:layout_width="400dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
         android:hint="이름"
-        android:inputType="text" />
+        android:inputType="text"
+        android:textSize="24sp" />
 
     <EditText
         android:id="@+id/editRegisterCall"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_marginBottom="24dp"
-        android:layout_weight="1"
+        android:layout_width="400dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="45dp"
         android:hint="보호자전화"
-        android:inputType="number" />
+        android:inputType="number"
+        android:textSize="24sp" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
+        android:layout_width="400dp"
+        android:layout_height="60dp"
         android:orientation="horizontal">
 
         <Button
             android:id="@+id/buttonRegister"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="55dp"
             android:layout_marginEnd="8dp"
             android:layout_weight="1"
             android:text="가입하기"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:textSize="20sp" />
 
         <Button
             android:id="@+id/buttonCancel"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="55dp"
             android:layout_weight="1"
             android:text="취소"
-            android:textColor="@android:color/white" />
+            android:textColor="@android:color/white"
+            android:textSize="20sp" />
     </LinearLayout>
 
 </LinearLayout>

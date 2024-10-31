@@ -2,20 +2,23 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:gravity="center"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="30dp">
 
     <EditText
         android:id="@+id/editTextTask"
-        android:layout_width="match_parent"
+        android:layout_width="400dp"
         android:layout_height="wrap_content"
-        android:hint="Task" />
+        android:hint="Task"
+        android:textSize="24sp" />
 
     <EditText
         android:id="@+id/editTextDate"
-        android:layout_width="match_parent"
+        android:layout_width="400dp"
         android:layout_height="wrap_content"
         android:focusable="false"
         android:hint="Schedule Date (yyyy-mm-dd)"
-        android:inputType="date" />
+        android:inputType="date"
+        android:textSize="24sp" />
 </LinearLayout>
