@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp"
+    android:gravity="center">
+
+<LinearLayout
+android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:layout_marginEnd="16dp">
+
+<ImageView
+android:id="@+id/imageJacketIcon"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:visibility="gone" />
+
+<TextView
+android:id="@+id/textCoatMessage"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:visibility="gone"
+    android:textSize="14sp" />
+    </LinearLayout>
+
+<LinearLayout
+android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center">
+
+<ImageView
+android:id="@+id/imageUmbrellaIcon"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:visibility="gone" />
+
+<TextView
+android:id="@+id/textUmbrellaMessage"
+android:layout_width="wrap_content"
+android:layout_height="wrap_content"
+android:visibility="gone"
+    android:textSize="14sp" />
+    </LinearLayout>
+
+    </LinearLayout>
+    <!-- gone 으로 기본적으로 숨김 -->

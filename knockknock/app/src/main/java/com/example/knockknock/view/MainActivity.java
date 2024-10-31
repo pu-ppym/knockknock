@@ -40,14 +40,19 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.knockknock.R;
 import com.example.knockknock.controller.ApiService;
+import com.example.knockknock.model.AccessModel;
 import com.example.knockknock.model.EmergencyContactResponse;
 import com.example.knockknock.controller.RetrofitClient;
 import com.example.knockknock.model.MedicineModel;
 import com.example.knockknock.model.ScheduleModel;
 import com.razzaghimahdi78.dotsloading.circle.LoadingCircleFady;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.InputStream;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,11 +61,13 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TimeZone;
 import java.util.UUID;
 
 import jxl.Sheet;
 import jxl.Workbook;
 import jxl.read.biff.BiffException;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -113,10 +120,16 @@ public class MainActivity extends AppCompatActivity {
     ImageButton medicationBtn;
     String time_of_day = "";
     List<MedicineModel> medicines;
+    private ApiService apiService;
+
+    // 추천 아이템
+    boolean showCoatIcon = false;
+    boolean showUmbrellaIcon = false;
 
 
     private boolean gpsLocationReceived = false;  //getGpsData()
     //int pkid;
+    SharedPreferences sharedPreferences;
 
 
     @Override
@@ -141,14 +154,16 @@ public class MainActivity extends AppCompatActivity {
         loadingImg.setDuration(400);
 
         // 파일에 저장된 유저정보 불러오기
-        SharedPreferences sharedPreferences = getSharedPreferences("userInfo", MODE_PRIVATE);
+        sharedPreferences = getSharedPreferences("userInfo", MODE_PRIVATE);
         int pkid = sharedPreferences.getInt("userPkid", -1); // -1은 기본값
+        apiService = retrofit.create(ApiService.class);
 
         ShowTimeMethod();
         getGpsData();
-        //initializeBluetooth();
+        initializeBluetooth();
         fetchTasks(pkid);
         fetchMedicine(pkid);
+        fetchAccessRecords(pkid);
 
 
         ckListBtn.setOnClickListener(new View.OnClickListener() {
@@ -247,9 +262,11 @@ public class MainActivity extends AppCompatActivity {
 
                     if (weatherInfo != null) {
                         weatherInfoArray = weatherInfo.split(" ");   // 0하늘, 1기온, 2강수 확률, 3눈 or 비, 4습도
+                        Log.d("날씨 정보: ", Arrays.toString(weatherInfoArray));
                         showWeather.setText(weatherInfoArray[1]);
                         // 날씨 이미지 세팅 함수
                         setWeatherImg(weatherInfoArray, hour);
+                        checkWeatherConditions(weatherInfoArray);   // 추천 아이템
                     } else {
                         showWeather.setText("날씨 정보를 가져오지 못했습니다.");
                     }
@@ -313,7 +330,6 @@ public class MainActivity extends AppCompatActivity {
                 readExcel(String.valueOf((int) lat),  String.valueOf((int) lng));
 
                 showWeatherData();
-
             }
 
         };
@@ -327,9 +343,8 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
-            //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-            //        0, 10, locationListener);
-
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                    0, 10, locationListener);
 
         }
 
@@ -374,13 +389,10 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("Error", "Bluetooth 권한이 거부되었습니다.");
             }
         }
-
          */
 
-
-
-
     }
+
 
 // gps로 주소 가져오기
     public String getCurrentAddress( double latitude, double longitude) {
@@ -391,7 +403,6 @@ public class MainActivity extends AppCompatActivity {
         List<Address> addresses;
 
         try {
-
             addresses = geocoder.getFromLocation(
                     latitude,
                     longitude,
@@ -403,20 +414,16 @@ public class MainActivity extends AppCompatActivity {
         } catch (IllegalArgumentException illegalArgumentException) {
             Toast.makeText(this, "잘못된 GPS 좌표", Toast.LENGTH_LONG).show();
             return "잘못된 GPS 좌표";
-
         }
-
 
 
         if (addresses == null || addresses.size() == 0) {
             Toast.makeText(this, "주소 미발견", Toast.LENGTH_LONG).show();
             return "주소 미발견";
-
         }
 
         Address address = addresses.get(0);
         return address.getAddressLine(0).toString()+"\n";
-
     }
 
 
@@ -560,10 +567,8 @@ public class MainActivity extends AppCompatActivity {
             if (data.equals("1") && canReceiveData) {
                 btTest.setText("신호: ON");
 
-                //showAlert("오늘의 할일", stringBuilderTasks.toString());
-                //showAlert("이것 챙기셨나요?", finalSelection.toString());
-                //showAlert(medicines, time_of_day);
                 showNotifications(getApplicationContext());
+                saveAccessRecord();
 
                 canReceiveData = false;
                 disableDataReceiving(5000); // 5초 후 데이터 수신 재개
@@ -580,13 +585,16 @@ public class MainActivity extends AppCompatActivity {
             showAlert("오늘의 할일", stringBuilderTasks.toString());
         }
 
+        if (preferences.getBoolean("medicine_enabled", true)) {
+            showAlert(medicines, time_of_day);
+        }
+
         if (preferences.getBoolean("reminder_enabled", true)) {
             showAlert("이것 챙기셨나요?", finalSelection.toString());
         }
 
-        if (preferences.getBoolean("medicine_enabled", true)) {
-            showAlert(medicines, time_of_day);
-        }
+        showWeatherAlert(showCoatIcon, showUmbrellaIcon);
+
     }
 
     private void showAlert(String titleMessage, String message) {
@@ -666,7 +674,7 @@ public class MainActivity extends AppCompatActivity {
 
     // 긴급전화
     private void fetchEmergencyContact(int pkid) {
-        ApiService apiService = retrofit.create(ApiService.class);
+        //ApiService apiService = retrofit.create(ApiService.class);
         Call<EmergencyContactResponse> call = apiService.getEmergencyContact(pkid);
 
         call.enqueue(new Callback<EmergencyContactResponse>() {
@@ -762,7 +770,7 @@ public class MainActivity extends AppCompatActivity {
         ScheduleModel schedule = new ScheduleModel(fkmember, tasks, scheduleDate);
 
         // Retrofit 으로 서버에 데이터 전송
-        ApiService apiService = retrofit.create(ApiService.class);
+        //ApiService apiService = retrofit.create(ApiService.class);
         Call<Void> call = apiService.addSchedule(schedule);
 
         call.enqueue(new Callback<Void>() {
@@ -793,7 +801,7 @@ public class MainActivity extends AppCompatActivity {
         String scheduleDate = simpleDateFormat1.format(tdayDate);
 
 
-        ApiService apiService = retrofit.create(ApiService.class);
+        //ApiService apiService = retrofit.create(ApiService.class);
         apiService.getTasks(fkmember, scheduleDate).enqueue(new Callback<List<ScheduleModel>>() {
             @Override
             public void onResponse(Call<List<ScheduleModel>> call, Response<List<ScheduleModel>> response) {
@@ -871,7 +879,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void saveMedicineDataToServer(int fkmember, String med_name, String timeOfDay) {
-        ApiService apiService = retrofit.create(ApiService.class);
+        //ApiService apiService = retrofit.create(ApiService.class);
 
         MedicineModel medicineData = new MedicineModel(fkmember, med_name, timeOfDay);
         Call<Void> call = apiService.saveMedication(medicineData);
@@ -910,12 +918,12 @@ public class MainActivity extends AppCompatActivity {
             time_of_day =  "저녁";
         }
 
-        ApiService apiService = retrofit.create(ApiService.class);
+        //ApiService apiService = retrofit.create(ApiService.class);
         apiService.getMedicines(fkmember, time_of_day).enqueue(new Callback<List<MedicineModel>>() {
             @Override
             public void onResponse(Call<List<MedicineModel>> call, Response<List<MedicineModel>> response) {
                 if (response.isSuccessful()) {
-                    medicines = response.body();  // showalert 테스트로 냅두고 나중엔 전역변수로 수정
+                    medicines = response.body();  // showalert 테스트로 냅두고 나중엔 전역변수로 수정 // ㅇ
                     //showAlert(medicines, time_of_day);  // test
                     //showNotifications(getApplicationContext());  // test
 
@@ -946,6 +954,145 @@ public class MainActivity extends AppCompatActivity {
 
         AlertDialog dialog = builder.create();
         dialog.show();
+    }
+
+
+    // 출입 기록 저장
+    private void saveAccessRecord() {
+        int pkid = sharedPreferences.getInt("userPkid", -1);
+
+        //ApiService apiService = retrofit.create(ApiService.class);
+        Call<AccessModel> call = apiService.recordAccess(pkid);
+        call.enqueue(new Callback<AccessModel>() {
+            @Override
+            public void onResponse(@NonNull Call<AccessModel> call, @NonNull Response<AccessModel> response) {
+                if (response.isSuccessful()) {
+                    Log.d("DB", "출입 기록 저장 성공");
+                } else {
+                    Log.e("DB", "출입 기록 저장 실패: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<AccessModel> call, Throwable t) {
+                Log.e("DB", "출입 기록 저장 실패: " + t.getMessage());
+            }
+        });
+    }
+
+
+    // 출입 기록 가져오기
+    private void fetchAccessRecords(int fkmember) {
+        Call<List<AccessModel>> call = apiService.getAccessRecords(fkmember);
+        call.enqueue(new Callback<List<AccessModel>>() {
+            @Override
+            public void onResponse(Call<List<AccessModel>> call, Response<List<AccessModel>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<AccessModel> accessRecords = response.body();
+                    for (AccessModel record : accessRecords) {
+                        Log.d("DB", "출입 기록: " + record.getAccess_timestamp());
+                        checkAccessTimeAndCall(record.getAccess_timestamp());
+                    }
+                } else {
+                    Log.e("DB", "출입 기록 가져오기 실패: " + response.message());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<AccessModel>> call, Throwable t) {
+                Log.e("DB", "출입 기록 가져오기 실패: " + t.getMessage());
+            }
+        });
+    }
+
+    // 출입 기록 확인 + 일단 전화 걸기
+    private void checkAccessTimeAndCall(String accessTime) {
+        // UTC 시간 문자열 포맷
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
+        sdf.setTimeZone(TimeZone.getTimeZone("Asia/Seoul"));
+
+        try {
+            // 시간 문자열을 Date 객체로 변환
+            Date date = sdf.parse(accessTime);
+            if (date != null) {
+                // 현재 시간 구하기
+                SimpleDateFormat hourFormat = new SimpleDateFormat("HH", Locale.getDefault());
+                int hour = Integer.parseInt(hourFormat.format(date));
+
+                Log.d("출입 감지된 시간", String.valueOf(hour));
+                // 새벽 시간(00:00 ~ 06:00) 체크
+                if (hour >= 0 && hour < 6) {
+                    //makePhoneCall(emergencyContact);
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace(); // 오류 발생 시 로그 출력
+        }
+    }
+
+    // 날씨에 따른 추천 아이템
+    private void checkWeatherConditions(String[] weatherInfoArray) {
+        // 기온과 강수확률 파싱
+        int temperature = Integer.parseInt(weatherInfoArray[1].replace("℃", "").trim());
+        int precipitationProbability = Integer.parseInt(weatherInfoArray[2].replace("%", "").trim());
+
+        StringBuilder alertMessage = new StringBuilder();
+        //showCoatIcon = false;
+        //showUmbrellaIcon = false;
+
+        // 기온 체크
+        if (temperature <= 20) {   // 테스트 20도 이하
+            //alertMessage.append("기온이 낮습니다.\n");
+            showCoatIcon = true; // 외투 아이콘 표시
+        }
+
+        // 강수확률 체크
+        if (precipitationProbability >= 10) {    // 테스트 10% 이상
+            //alertMessage.append("비가 올 수 있습니다\n");
+            showUmbrellaIcon = true; // 우산 아이콘 표시
+        }
+
+        // 알림이 있을 경우 AlertDialog 생성
+        if (showCoatIcon || showUmbrellaIcon) {
+            //showWeatherAlert(alertMessage.toString(), showCoatIcon, showUmbrellaIcon);
+            //showWeatherAlert(showCoatIcon, showUmbrellaIcon);
+        }
+    }
+
+// String message 매개변수 뺏음
+    private void showWeatherAlert(boolean showCoatIcon, boolean showUmbrellaIcon) {
+        // 커스텀 레이아웃 인플레이트
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_weather_alert, null);
+
+        ImageView imageCoatIcon = dialogView.findViewById(R.id.imageJacketIcon);
+        ImageView imageUmbrellaIcon = dialogView.findViewById(R.id.imageUmbrellaIcon);
+        TextView textCoatMessage = dialogView.findViewById(R.id.textCoatMessage);
+        TextView textUmbrellaMessage = dialogView.findViewById(R.id.textUmbrellaMessage);
+
+        // 아이콘 표시 여부 설정
+        if (showCoatIcon) {
+            imageCoatIcon.setImageResource(R.drawable.jacket);
+            imageCoatIcon.setVisibility(View.VISIBLE); // 외투 아이콘 보이기
+            textCoatMessage.setText("기온이 낮습니다.");
+            textCoatMessage.setVisibility(View.VISIBLE);
+        }
+
+        if (showUmbrellaIcon) {
+            imageUmbrellaIcon.setImageResource(R.drawable.umbrella);
+            imageUmbrellaIcon.setVisibility(View.VISIBLE); // 우산 아이콘 보이기
+            textUmbrellaMessage.setText("비가 올 수 있습니다");
+            textUmbrellaMessage.setVisibility(View.VISIBLE);
+        }
+
+        // 메시지 설정
+        //textWeatherMessage.setText(message);
+
+        new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setTitle("이런 물건은 어떠신가요?")
+                .setPositiveButton("확인", null)
+                .show();
     }
 
 

@@ -3,9 +3,11 @@ const mysql = require('mysql2');
 const bodyParser = require('body-parser');
 const app = express();
 
+const moment = require('moment-timezone');
+
 // MySQL 연결 설정
 const db = mysql.createConnection({
-  host: '192.168.200.101',  // 서버 호스트 이름
+  host: '192.168.200.104',  // 서버 호스트 이름
   user: 'jio',       // MySQL 사용자 이름
   password: '6207', // MySQL 비밀번호
   database: 'knockdb'  // 사용할 데이터베이스 이름
@@ -163,6 +165,47 @@ app.get('/medications/:fkmember/:time_of_day', (req, res) => {
       res.json(results);
   });
 });
+
+
+// 출입 기록 저장
+app.get('/recordAccess', (req, res) => {
+  const fkmember = req.query.fkmember;
+
+  if (!fkmember) {
+      return res.status(400).send('fkmember 파라미터가 필요합니다.');
+  }
+
+  const sql = 'INSERT INTO door_access (fkmember) VALUES (?)';
+  db.query(sql, [fkmember], (err, result) => {
+      if (err) {
+          console.error(err);
+          return res.status(500).send('DB 저장에 실패했습니다.');
+      }
+      res.send('출입 기록이 성공적으로 저장되었습니다.');
+  });
+});
+
+
+// 출입 기록 가져오기
+app.get('/getAccessRecords', (req, res) => {
+  const fkmember = req.query.fkmember;
+
+  const sql = 'SELECT access_timestamp FROM door_access WHERE fkmember = ?';
+  db.query(sql, [fkmember], (err, results) => {
+      if (err) {
+          console.error(err);
+          return res.status(500).send('출입 기록을 가져오는 데 실패했습니다.');
+      }
+      const records = results.map(record => {
+        // timestamp를 한국 표준시로 변환
+        const localTime = moment.tz(record.access_timestamp, 'Asia/Seoul').format('YYYY-MM-DD HH:mm:ss');
+        return { access_timestamp: localTime }; // 변환된 시간을 새로운 필드에 추가
+    });
+      res.json(records); // JSON 형식으로 출입 기록 반환
+      console.log(results[0]);
+  });
+});
+
 
 
 /*

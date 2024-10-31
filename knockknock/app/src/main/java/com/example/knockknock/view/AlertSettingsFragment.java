@@ -9,6 +9,7 @@ import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Switch;
 
 import com.example.knockknock.R;
@@ -94,6 +95,15 @@ public class AlertSettingsFragment extends Fragment {
             editor.putBoolean("medicine_enabled", isChecked);
             editor.apply();
         });
+
+        Button buttonClose = view.findViewById(R.id.btn_close);
+        buttonClose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                getActivity().finish();
+            }
+        });
+
 
         return view;
     }

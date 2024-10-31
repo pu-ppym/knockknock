@@ -19,6 +19,7 @@ create table door_access(
     access_timestamp timestamp DEFAULT CURRENT_TIMESTAMP,
     constraint fkmember_door foreign key(fkmember) references members(pkid)
 ) ENGINE=InnoDB;
+select * from door_access;
 
 -- 테스트
 CREATE TABLE distances (
@@ -58,11 +59,11 @@ create table medications(
 ) ENGINE=InnoDB;
 
 
-
+select med_name from medications where (fkmember = 5) and (time_of_day = "아침");
 
 select * from members;
 select * from schedules;
-select * from medication;
+select * from medications;
 select * from door_access;
 
 INSERT INTO schedules (fkmember, tasks, schedule_date) 

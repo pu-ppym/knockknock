@@ -1,5 +1,9 @@
 package com.example.knockknock.controller;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.example.knockknock.model.AccessModel;
 import com.example.knockknock.model.EmergencyContactResponse;
 import com.example.knockknock.model.MedicineModel;
 import com.example.knockknock.model.MemberModel;
@@ -7,11 +11,13 @@ import com.example.knockknock.model.ScheduleModel;
 
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
+import retrofit2.http.Query;
 
 public interface ApiService {
     @POST("/register")
@@ -43,4 +49,10 @@ public interface ApiService {
             @Path("fkmember") int fkmember,
             @Path("time_of_day") String time_of_day
     );
+
+    @GET("recordAccess")
+    Call<AccessModel> recordAccess(@Query("fkmember") int fkmember);
+
+    @GET("getAccessRecords")
+    Call<List<AccessModel>> getAccessRecords(@Query("fkmember") int fkmember);
 }
