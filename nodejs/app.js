@@ -202,7 +202,7 @@ app.get('/getAccessRecords', (req, res) => {
         return { access_timestamp: localTime }; // 변환된 시간을 새로운 필드에 추가
     });
       res.json(records); // JSON 형식으로 출입 기록 반환
-      console.log(results[0]);
+      console.log(records);
   });
 });
 

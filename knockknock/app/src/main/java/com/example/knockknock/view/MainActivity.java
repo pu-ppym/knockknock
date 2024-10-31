@@ -165,6 +165,18 @@ public class MainActivity extends AppCompatActivity {
         fetchMedicine(pkid);
         fetchAccessRecords(pkid);
 
+        // 스샷용
+        btTest.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showAlert("오늘의 할일", stringBuilderTasks.toString());
+                showAlert(medicines, time_of_day);
+                showWeatherAlert(showCoatIcon, showUmbrellaIcon);
+                showAlert("이것 챙기셨나요?", finalSelection.toString());
+            }
+        });
+
+
 
         ckListBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -210,7 +222,6 @@ public class MainActivity extends AppCompatActivity {
         final Handler handler = new Handler(){
             @Override
             public void handleMessage(@NonNull Message msg) {
-//                ShowTime.setText(DateFormat.getDateTimeInstance().format(new Date()));
                 Calendar cal = Calendar.getInstance();
 
                 SimpleDateFormat date = new SimpleDateFormat("yyyy/MM/dd(E)");
@@ -589,11 +600,15 @@ public class MainActivity extends AppCompatActivity {
             showAlert(medicines, time_of_day);
         }
 
+
+        if(preferences.getBoolean("reminder_enabled", true)) {
+            showWeatherAlert(showCoatIcon, showUmbrellaIcon);
+        }
+
         if (preferences.getBoolean("reminder_enabled", true)) {
             showAlert("이것 챙기셨나요?", finalSelection.toString());
         }
 
-        showWeatherAlert(showCoatIcon, showUmbrellaIcon);
 
     }
 
@@ -713,7 +728,7 @@ public class MainActivity extends AppCompatActivity {
     // 할일 추가
     private void showAddScheduleDialog(int pkid) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this); // 다이얼로그 설정이 다르면 걍 새로 만드는게 나음
-        builder.setTitle("Add Schedule");
+        builder.setTitle("일정 등록");
 
         LayoutInflater inflater = this.getLayoutInflater();
         View dialogView = inflater.inflate(R.layout.dialog_add_schedule, null);
@@ -746,7 +761,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        builder.setPositiveButton("Add", (dialog, which) -> {
+        builder.setPositiveButton("저장", (dialog, which) -> {
             String task = editTextTask.getText().toString();
             String date = editTextDate.getText().toString();
 
@@ -758,7 +773,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss());
+        builder.setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
 
         AlertDialog dialog = builder.create();
         dialog.show();
@@ -1022,7 +1037,7 @@ public class MainActivity extends AppCompatActivity {
                 Log.d("출입 감지된 시간", String.valueOf(hour));
                 // 새벽 시간(00:00 ~ 06:00) 체크
                 if (hour >= 0 && hour < 6) {
-                    //makePhoneCall(emergencyContact);
+                    makePhoneCall(emergencyContact);
                 }
             }
         } catch (ParseException e) {
@@ -1041,13 +1056,13 @@ public class MainActivity extends AppCompatActivity {
         //showUmbrellaIcon = false;
 
         // 기온 체크
-        if (temperature <= 20) {   // 테스트 20도 이하
+        if (temperature <= 30) {   // 테스트 30도 이하
             //alertMessage.append("기온이 낮습니다.\n");
             showCoatIcon = true; // 외투 아이콘 표시
         }
 
         // 강수확률 체크
-        if (precipitationProbability >= 10) {    // 테스트 10% 이상
+        if (precipitationProbability >= 0) {    // 테스트 0% 이상
             //alertMessage.append("비가 올 수 있습니다\n");
             showUmbrellaIcon = true; // 우산 아이콘 표시
         }

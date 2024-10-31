@@ -61,7 +61,7 @@ public class AlertSettingsFragment extends Fragment {
         }
     }
 
-    private Switch switchTodayTask, switchReminder, switchMedicine;
+    private Switch switchTodayTask, switchReminder, switchMedicine, switchRecomm;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -72,11 +72,13 @@ public class AlertSettingsFragment extends Fragment {
         switchTodayTask = view.findViewById(R.id.switch_today_task);
         switchReminder = view.findViewById(R.id.switch_reminder);
         switchMedicine = view.findViewById(R.id.switch_medicine);
+        switchRecomm = view.findViewById(R.id.switch_recomm);
 
         SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getContext());
         switchTodayTask.setChecked(preferences.getBoolean("today_task_enabled", true));
         switchReminder.setChecked(preferences.getBoolean("reminder_enabled", true));
         switchMedicine.setChecked(preferences.getBoolean("medicine_enabled", true));
+        switchRecomm.setChecked(preferences.getBoolean("recommended_enabled", true));
 
         switchTodayTask.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences.Editor editor = preferences.edit();
@@ -93,6 +95,12 @@ public class AlertSettingsFragment extends Fragment {
         switchMedicine.setOnCheckedChangeListener((buttonView, isChecked) -> {
             SharedPreferences.Editor editor = preferences.edit();
             editor.putBoolean("medicine_enabled", isChecked);
+            editor.apply();
+        });
+
+        switchMedicine.setOnCheckedChangeListener((buttonView, isChecked) -> {
+            SharedPreferences.Editor editor = preferences.edit();
+            editor.putBoolean("recommended_enabled", isChecked);
             editor.apply();
         });
 

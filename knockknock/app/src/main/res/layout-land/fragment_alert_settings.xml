@@ -31,6 +31,13 @@
             android:layout_height="70dp"
             android:text="약 복용 알림"
             android:textSize="28sp" />
+
+        <Switch
+            android:id="@+id/switch_recomm"
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:text="추천 아이템 알림"
+            android:textSize="28sp" />
     </LinearLayout>
 
     <Button

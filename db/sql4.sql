@@ -20,6 +20,9 @@ create table door_access(
     constraint fkmember_door foreign key(fkmember) references members(pkid)
 ) ENGINE=InnoDB;
 select * from door_access;
+SELECT access_timestamp FROM door_access WHERE fkmember = 5;
+SELECT access_timestamp FROM door_access WHERE fkmember = 5;
+SELECT @@global.time_zone, @@session.time_zone;
 
 -- 테스트
 CREATE TABLE distances (
@@ -60,6 +63,9 @@ create table medications(
 
 
 select med_name from medications where (fkmember = 5) and (time_of_day = "아침");
+select pkid, fkmember, tasks, schedule_date from schedules where (fkmember = 7) ;
+
+select * from medications where (fkmember = 7);
 
 select * from members;
 select * from schedules;

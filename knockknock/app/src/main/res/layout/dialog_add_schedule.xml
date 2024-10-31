@@ -10,7 +10,7 @@
         android:id="@+id/editTextTask"
         android:layout_width="400dp"
         android:layout_height="wrap_content"
-        android:hint="Task"
+        android:hint="일정을 입력하세요"
         android:textSize="24sp" />
 
     <EditText
@@ -18,7 +18,7 @@
         android:layout_width="400dp"
         android:layout_height="wrap_content"
         android:focusable="false"
-        android:hint="Schedule Date (yyyy-mm-dd)"
+        android:hint="일정 날짜를 선택하세요"
         android:inputType="date"
         android:textSize="24sp" />
 </LinearLayout>
