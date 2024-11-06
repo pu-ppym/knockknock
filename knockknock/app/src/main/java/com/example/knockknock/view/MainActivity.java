@@ -35,6 +35,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -214,6 +215,12 @@ public class MainActivity extends AppCompatActivity {
                 showMediInputDialog(pkid);
             }
         });
+
+
+        BusBtnFragment busBtnFragment = new BusBtnFragment();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        transaction.replace(R.id.busFrgContainerView, busBtnFragment);
+        transaction.commit();
 
 
     }

@@ -144,7 +144,7 @@ public class BusStnFragment extends Fragment {
 
                 FragmentTransaction transaction = getActivity().getSupportFragmentManager().beginTransaction();
                 transaction.replace(R.id.busFrgContainerView, busArrivalFragment);
-                transaction.addToBackStack(null); // 뒤로가기 스택에 추가
+//                transaction.addToBackStack(null); // 뒤로가기 스택에 추가
                 transaction.commit();
             }
         });
