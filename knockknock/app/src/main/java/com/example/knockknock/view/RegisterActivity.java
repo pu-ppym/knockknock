@@ -44,6 +44,24 @@ public class RegisterActivity extends AppCompatActivity {
                 String name = editTextName.getText().toString();
                 String eCall = editTextCall.getText().toString();
 
+                if (id.isEmpty()) {
+                    Toast.makeText(RegisterActivity.this, "아이디를 입력해 주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (password.isEmpty()) {
+                    Toast.makeText(RegisterActivity.this, "비밀번호를 입력해 주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (name.isEmpty()) {
+                    Toast.makeText(RegisterActivity.this, "이름을 입력해 주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (eCall.isEmpty()) {
+                    Toast.makeText(RegisterActivity.this, "전화번호를 입력해 주세요.", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+
                 MemberModel member = new MemberModel(id, password, name, eCall);
                 registerMember(member);
             }

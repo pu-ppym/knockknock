@@ -9,7 +9,7 @@ public class RetrofitClient {
     public static Retrofit getClient() {
         if (retrofit == null) {
             retrofit = new Retrofit.Builder()
-                    .baseUrl("")  // 서버 URL 설정
+                    .baseUrl("http://:3000/")  // 서버 URL 설정
                     .addConverterFactory(GsonConverterFactory.create())  // JSON 변환을 위한 Gson 사용
                     .build();
         }

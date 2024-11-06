@@ -368,8 +368,10 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
+
 //            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
 //                    0, 10, locationListener);
+
 
         }
 
