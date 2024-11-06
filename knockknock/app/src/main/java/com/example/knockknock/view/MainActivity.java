@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
 
         ShowTimeMethod();
         getGpsData();
-        initializeBluetooth();
+//        initializeBluetooth();
         fetchTasks(pkid);
         fetchMedicine(pkid);
         fetchAccessRecords(pkid);
@@ -336,6 +336,13 @@ public class MainActivity extends AppCompatActivity {
 
                 String address = getCurrentAddress(lat, lng);
                 Log.i("MyAddress","주소: " + address);
+
+                SharedPreferences sharedPreferences = getSharedPreferences("GPSData", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+
+                editor.putString("x", String.valueOf(x)); // x 값을 String으로 저장
+                editor.putString("y", String.valueOf(y)); // y 값을 String으로 저장
+                editor.apply(); // 변경사항 저장
 
                 // 엑셀파일에서 기상청만의 특별한^^ x,y 좌표(격자 XY) 가져옴
                 readExcel(String.valueOf((int) lat),  String.valueOf((int) lng));
