@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageButton;
 
 import com.example.knockknock.R;
 
@@ -72,12 +73,12 @@ public class BusBtnFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_bus_btn, container, false);
 
-        //Button button = view.findViewById(R.id.busBtn);
+        ImageButton button = view.findViewById(R.id.busBtn);
 
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("GPSData", Context.MODE_PRIVATE);
-
-        lat = sharedPreferences.getString("x", "default_x");  // 기본값 설정
-        lng = sharedPreferences.getString("y", "default_y");  // 기본값 설정
+//        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("GPSData", Context.MODE_PRIVATE);
+//
+//        lat = sharedPreferences.getString("x", "default_x");  // 기본값 설정
+//        lng = sharedPreferences.getString("y", "default_y");  // 기본값 설정
 
 
 //        Bundle args = getArguments();
@@ -85,7 +86,9 @@ public class BusBtnFragment extends Fragment {
 //            lat = args.getString("key_x");
 //            lng = args.getString("key_y");
 //        }
-/*
+        lat ="37.54";
+        lng = "126.72";
+
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,7 +104,7 @@ public class BusBtnFragment extends Fragment {
                 transaction.commit();
             }
         });
-*/
+
         return view;
     }
 }
