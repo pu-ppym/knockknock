@@ -72,7 +72,7 @@ public class BusBtnFragment extends Fragment {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_bus_btn, container, false);
 
-        Button button = view.findViewById(R.id.busBtn);
+        //Button button = view.findViewById(R.id.busBtn);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("GPSData", Context.MODE_PRIVATE);
 
@@ -85,7 +85,7 @@ public class BusBtnFragment extends Fragment {
 //            lat = args.getString("key_x");
 //            lng = args.getString("key_y");
 //        }
-
+/*
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,7 +101,7 @@ public class BusBtnFragment extends Fragment {
                 transaction.commit();
             }
         });
-
+*/
         return view;
     }
 }

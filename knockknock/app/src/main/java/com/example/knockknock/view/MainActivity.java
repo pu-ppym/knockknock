@@ -25,9 +25,14 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -161,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
 
         ShowTimeMethod();
         getGpsData();
-//        initializeBluetooth();
+        initializeBluetooth();
         fetchTasks(pkid);
         fetchMedicine(pkid);
         fetchAccessRecords(pkid);
@@ -170,10 +175,14 @@ public class MainActivity extends AppCompatActivity {
         btTest.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showAlert("오늘의 할일", stringBuilderTasks.toString());
+                if (stringBuilderTasks != null) {
+                    showAlert("오늘의 할일", stringBuilderTasks.toString());
+                }
                 showAlert(medicines, time_of_day);
                 showWeatherAlert(showCoatIcon, showUmbrellaIcon);
-                showAlert("이것 챙기셨나요?", finalSelection.toString());
+                SharedPreferences sharedPreferences = getSharedPreferences("MyPreferences", MODE_PRIVATE);
+                String savedSelection = sharedPreferences.getString("finalSelection", "");
+                showChecklistAlert("이것 챙기셨나요?", savedSelection);
             }
         });
 
@@ -216,12 +225,12 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+/*
         BusBtnFragment busBtnFragment = new BusBtnFragment();
         FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.busFrgContainerView, busBtnFragment);
         transaction.commit();
-
+*/
 
     }
 
@@ -368,8 +377,8 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
-            //locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-            //       0, 10, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+                   0, 10, locationListener);
 
         }
 
@@ -615,12 +624,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        if(preferences.getBoolean("recommended_enabled", true)) {
+        if(preferences.getBoolean("recommended_enabled", true) && (showCoatIcon || showUmbrellaIcon)) {
             showWeatherAlert(showCoatIcon, showUmbrellaIcon);
         }
 
         if (preferences.getBoolean("reminder_enabled", true)) {
-            showAlert("이것 챙기셨나요?", finalSelection.toString());
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPreferences", MODE_PRIVATE);
+            String savedSelection = sharedPreferences.getString("finalSelection", "");
+            showChecklistAlert("이것 챙기셨나요?", savedSelection);
+            Log.d("초음파 준비물 알럿: ",savedSelection );
         }
 
 
@@ -663,39 +675,50 @@ public class MainActivity extends AppCompatActivity {
 
     // 준비물 등록
     private void showChecklistDialog() {
+        finalSelection = new StringBuilder();
+        checkedItems.clear();
+
         // 목록 배열
         String[] listItems = getResources().getStringArray(R.array.checklist);
+        int[] icons = {
+                R.drawable.ic_umbrella,
+                R.drawable.ic_parasol,
+                R.drawable.ic_phone,
+                R.drawable.ic_handkerchief,
+                R.drawable.ic_medicine,
+                R.drawable.ic_wipes,
+                R.drawable.ic_key,
+                R.drawable.ic_car_key,
+                R.drawable.ic_lip_balm,
+                R.drawable.ic_wallet
+        };
         boolean[] checkedStatus = new boolean[listItems.length];
+
+        ChecklistAdapter adapter = new ChecklistAdapter(listItems, icons, checkedStatus);
+
+        RecyclerView recyclerView = new RecyclerView(MainActivity.this);
+        recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this)); // RecyclerView의 레이아웃 매니저 설정
+        recyclerView.setAdapter(adapter);
 
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
         builder.setTitle("무엇을 가지고 나가야 할까요?");
-        builder.setMultiChoiceItems(listItems, checkedStatus, new DialogInterface.OnMultiChoiceClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which, boolean isChecked) {
-                if (isChecked) {
-                    checkedItems.add(listItems[which]);
-                } else {
-                    checkedItems.remove(listItems[which]);
-                }
+        builder.setView(recyclerView);
+        builder.setPositiveButton("저장", (dialogInterface, i) -> {
+            //finalSelection = new StringBuilder();
+            for (String item : adapter.getCheckedItems()) {
+                finalSelection.append("\n").append(item);
             }
+            Toast.makeText(getApplicationContext(), "저장되었습니다", Toast.LENGTH_SHORT).show();
+            Log.d("DEBUG", "finalSelection: " + finalSelection);
+
+            SharedPreferences sharedPreferences = getSharedPreferences("MyPreferences", MODE_PRIVATE);
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("finalSelection", finalSelection.toString());
+            editor.apply();
+
+
         });
-        builder.setPositiveButton("저장", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialogInterface, int i) {
-                finalSelection.setLength(0); // StringBuilder 초기화
-                for (String item : checkedItems) {
-                    finalSelection.append("\n").append(item);
-                }
-                Toast.makeText(getApplicationContext(), "저장되었습니다", Toast.LENGTH_SHORT).show();
-                Log.d("DEBUG", "finalSelection: " + finalSelection);
-            }
-        });
-        builder.setNegativeButton("취소", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss(); // 취소 버튼 클릭 시 다이얼로그를 닫음
-            }
-        });
+        builder.setNegativeButton("취소", (dialog, which) -> dialog.dismiss());
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
     }
@@ -1085,13 +1108,13 @@ public class MainActivity extends AppCompatActivity {
         //showUmbrellaIcon = false;
 
         // 기온 체크
-        if (temperature <= 30) {   // 테스트 30도 이하
+        if (temperature <= 20) {   // 테스트 30도 이하
             //alertMessage.append("기온이 낮습니다.\n");
             showCoatIcon = true; // 외투 아이콘 표시
         }
 
         // 강수확률 체크
-        if (precipitationProbability >= 0) {    // 테스트 0% 이상
+        if (precipitationProbability >= 20) {    // 테스트 20% 이상
             //alertMessage.append("비가 올 수 있습니다\n");
             showUmbrellaIcon = true; // 우산 아이콘 표시
         }
@@ -1137,6 +1160,73 @@ public class MainActivity extends AppCompatActivity {
                 .setTitle("이런 물건은 어떠신가요?")
                 .setPositiveButton("확인", null)
                 .show();
+    }
+
+// 준비물 확인 알럿
+    private void showChecklistAlert(String titleMessage, String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(titleMessage)
+                .setPositiveButton("확인", (dialog, which) -> dialog.dismiss())
+                .setCancelable(true);
+        Log.d("준비물 넘어오나 테스트 : ", message);
+
+        if (message != null) {
+            // 선택된 아이템을 보여줄 LinearLayout
+            ScrollView scrollView = new ScrollView(this);
+            LinearLayout layout = new LinearLayout(this);
+            layout.setOrientation(LinearLayout.VERTICAL);  // 수직으로 배치
+
+            // 선택된 아이템들을 표시
+            String[] selectedItems = message.trim().split("\n");  // 줄 바꿈을 기준으로 항목 분리
+            for (String item : selectedItems) {
+                // 각 아이템마다 커스텀 레이아웃 생성
+                View view = getLayoutInflater().inflate(R.layout.itemalert_with_icon_and_text, null);
+                TextView textView = view.findViewById(R.id.item_text);
+                ImageView imageView = view.findViewById(R.id.item_icon);
+
+                // 아이템 텍스트 설정
+                textView.setText(item);
+
+                // 아이템에 해당하는 아이콘 설정
+                int iconResId = getIconForItem(item);  // 아이템에 해당하는 아이콘을 반환하는 메소드 호출
+                imageView.setImageResource(iconResId);
+
+                layout.addView(view);  // 만들어진 아이템을 레이아웃에 추가
+            }
+
+            scrollView.addView(layout);
+            builder.setView(scrollView);  // 다이얼로그의 뷰로 설정
+        }
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+    }
+
+    private int getIconForItem(String item) {
+        switch (item) {
+            case "우산":
+                return R.drawable.ic_umbrella;
+            case "양산":
+                return R.drawable.ic_parasol;
+            case "휴대전화":
+                return R.drawable.ic_phone;
+            case "손수건":
+                return R.drawable.ic_handkerchief;
+            case "약":
+                return R.drawable.ic_medicine;
+            case "물티슈":
+                return R.drawable.ic_wipes;
+            case "열쇠":
+                return R.drawable.ic_key;
+            case "차키":
+                return R.drawable.ic_car_key;
+            case "립밤":
+                return R.drawable.ic_lip_balm;
+            case "지갑":
+                return R.drawable.ic_wallet;
+            default:
+                return R.drawable.ic_default;  // 기본 아이콘
+        }
     }
 
 
