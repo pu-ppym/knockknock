@@ -337,19 +337,19 @@ public class MainActivity extends AppCompatActivity {
                 lat = location.getLatitude();
                 lng = location.getLongitude();
 
-                Log.i("MyLocation", "위도 : " + lat);
-                Log.i("MyLocation", "경도 : " + lng);
-
-
-                String address = getCurrentAddress(lat, lng);
-                Log.i("MyAddress","주소: " + address);
-
                 SharedPreferences sharedPreferences = getSharedPreferences("GPSData", Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                editor.putString("x", String.valueOf(x)); // x 값을 String으로 저장
-                editor.putString("y", String.valueOf(y)); // y 값을 String으로 저장
+                editor.putString("lat", String.valueOf(lat)); // x 값을 String으로 저장
+                editor.putString("lng", String.valueOf(lng)); // y 값을 String으로 저장
+                Log.i("main이구요. sharedpreferences입니다.",lat+"하고"+lng);
                 editor.apply(); // 변경사항 저장
+
+                Log.i("MyLocation", "위도 : " + lat);
+                Log.i("MyLocation", "경도 : " + lng);
+
+                String address = getCurrentAddress(lat, lng);
+                Log.i("MyAddress","주소: " + address);
 
                 // 엑셀파일에서 기상청만의 특별한^^ x,y 좌표(격자 XY) 가져옴
                 readExcel(String.valueOf((int) lat),  String.valueOf((int) lng));
@@ -368,8 +368,8 @@ public class MainActivity extends AppCompatActivity {
         } else{
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
                     0, 10, locationListener);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
-                    0, 10, locationListener);
+//            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
+//                    0, 10, locationListener);
 
         }
 

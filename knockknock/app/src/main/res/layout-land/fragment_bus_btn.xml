@@ -4,10 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ImageView
+    <ImageButton
         android:id="@+id/busBtn"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_gravity="center"
+        android:background="@drawable/button"
         app:srcCompat="@drawable/bus" />
 </FrameLayout>

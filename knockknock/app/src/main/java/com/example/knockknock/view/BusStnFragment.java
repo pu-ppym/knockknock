@@ -1,10 +1,10 @@
-//BusStnFragment 여기까지는 됨
-
 package com.example.knockknock.view;
 
 import static android.content.Context.LOCATION_SERVICE;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -105,12 +105,19 @@ public class BusStnFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_bus_stn, container, false);
 
         // main에서부터 gps받아오기
-        Bundle args = getArguments();
-        if (args != null) {
-            lat = args.getString("key_x");
-            lng = args.getString("key_y");
-            Log.i("getLocation", "x: "+lat + ", y: "+ lng);
-        }
+//        Bundle args = getArguments();
+//        if (args != null) {
+//            lat = args.getString("key_x");
+//            lng = args.getString("key_y");
+//            Log.i("getLocation", "x: "+lat + ", y: "+ lng);
+//        }
+
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("GPSData", Context.MODE_PRIVATE);
+
+        lat = sharedPreferences.getString("lat", "default_x");  // 기본값 설정
+        lng = sharedPreferences.getString("lng", "default_y");  // 기본값 설정
+
+        Log.i("bsf여기다.",lat+" 01 "+lng);
 
         stnData();
 
@@ -164,7 +171,7 @@ public class BusStnFragment extends Fragment {
                     StringBuilder urlBuilder = new StringBuilder(bsSttnApiUrl); /*URL*/
                     urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=" + serviceKey); /*Service Key*/
                     urlBuilder.append("&" + URLEncoder.encode("pageNo","UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")); /*페이지번호*/
-                    urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + URLEncoder.encode("30", "UTF-8")); /*한 페이지 결과 수*/
+                    urlBuilder.append("&" + URLEncoder.encode("numOfRows","UTF-8") + "=" + URLEncoder.encode("20", "UTF-8")); /*한 페이지 결과 수*/
                     urlBuilder.append("&" + URLEncoder.encode("_type","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*데이터 타입(xml, json)*/
                     urlBuilder.append("&" + URLEncoder.encode("gpsLati","UTF-8") + "=" + URLEncoder.encode(lat, "UTF-8")); /*WGS84 위도 좌표*/
                     urlBuilder.append("&" + URLEncoder.encode("gpsLong","UTF-8") + "=" + URLEncoder.encode(lng, "UTF-8")); /*WGS84 경도 좌표*/
@@ -175,14 +182,11 @@ public class BusStnFragment extends Fragment {
                     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                     conn.setRequestMethod("GET");
                     conn.setRequestProperty("Content-type", "application/json");
-                    Log.i("여긴가?","04");
 
                     BufferedReader rd;
                     if (conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-                        Log.i("여긴가?","01");
                         rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
                     } else {
-                        Log.i("여긴가?","02");
                         rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
                     }
 
